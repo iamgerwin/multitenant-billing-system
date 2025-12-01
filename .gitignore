@@ -1,3 +1,6 @@
+# Pull request documentation (local only)
+docs/pullrequests/
+
 # Dependencies
 node_modules/
 vendor/
