@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use App\Models\Concerns\BelongsToOrganization;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use HasFactory, SoftDeletes;
+    use BelongsToOrganization, HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -59,14 +60,6 @@ class Invoice extends Model
     ];
 
     /**
-     * Get the organization that owns the invoice.
-     */
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
-
-    /**
      * Get the vendor that the invoice belongs to.
      */
     public function vendor(): BelongsTo
@@ -88,14 +81,6 @@ class Invoice extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
-    }
-
-    /**
-     * Scope a query to filter by organization.
-     */
-    public function scopeForOrganization($query, int $organizationId)
-    {
-        return $query->where('organization_id', $organizationId);
     }
 
     /**
