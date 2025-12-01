@@ -1,2 +1,36 @@
 # Pull request documentation (local only)
 docs/pullrequests/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Environment
+.env
+.env.local
+*.local
+
+# Build outputs
+.nuxt/
+.output/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.phpunit.result.cache
+
+# Cache
+*.cache
