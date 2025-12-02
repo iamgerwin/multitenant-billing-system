@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => EnsureTenantContext::class,
             'admin' => EnsureUserIsAdmin::class,
         ]);
+
+        // Stateless API - no CSRF for API routes
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
