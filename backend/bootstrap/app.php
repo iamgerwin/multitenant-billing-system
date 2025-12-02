@@ -19,8 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
-        // Stateless API - no CSRF for API routes
-        $middleware->statefulApi();
+        // Token-based API authentication - CSRF not required for Bearer token auth
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
