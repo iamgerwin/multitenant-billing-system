@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useApi } from '~/composables/useApi'
 import type { User, AuthResponse, LoginCredentials, ApiErrorResponse } from '~/types'
 
 interface AuthState {
