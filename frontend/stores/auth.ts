@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
+import { useInvoiceStore } from './invoice'
+import { useVendorStore } from './vendor'
 import type { User, AuthResponse, LoginCredentials, ApiErrorResponse } from '~/types'
 
 interface AuthState {
@@ -83,8 +85,18 @@ export const useAuthStore = defineStore('auth', {
         // Ignore logout errors
       } finally {
         this.clearAuth()
+        this.clearAllStores()
         navigateTo('/login')
       }
+    },
+
+    clearAllStores() {
+      // Reset all stores to their initial state on logout
+      const invoiceStore = useInvoiceStore()
+      const vendorStore = useVendorStore()
+
+      invoiceStore.$reset()
+      vendorStore.$reset()
     },
 
     clearAuth() {
