@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
-import type {
-  Invoice,
-  InvoiceCreatePayload,
-  InvoiceUpdatePayload,
-  InvoiceStatusPayload,
+import {
   InvoiceStatus,
-  ApiResponse,
-  PaginatedResponse,
-  ApiErrorResponse,
-} from '~/types'
+  type Invoice,
+  type InvoiceCreatePayload,
+  type InvoiceUpdatePayload,
+  type InvoiceStatusPayload,
+  type ApiResponse,
+  type PaginatedResponse,
+  type ApiErrorResponse,
+} from '@billing/shared'
 
 interface InvoiceFilters {
   status?: InvoiceStatus
@@ -48,9 +48,9 @@ export const useInvoiceStore = defineStore('invoice', {
 
   getters: {
     pendingInvoices: (state): Invoice[] =>
-      state.invoices.filter((i) => i.status === 'pending'),
+      state.invoices.filter((i) => i.status === InvoiceStatus.Pending),
     approvedInvoices: (state): Invoice[] =>
-      state.invoices.filter((i) => i.status === 'approved'),
+      state.invoices.filter((i) => i.status === InvoiceStatus.Approved),
     overdueInvoices: (state): Invoice[] =>
       state.invoices.filter((i) => i.is_overdue),
     getInvoiceById: (state) => (id: number): Invoice | undefined => {

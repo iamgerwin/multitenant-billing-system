@@ -2,7 +2,14 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { useInvoiceStore } from './invoice'
 import { useVendorStore } from './vendor'
-import type { User, AuthResponse, LoginCredentials, ApiErrorResponse } from '~/types'
+import {
+  UserRole,
+  UserRolePermissions,
+  type User,
+  type AuthResponse,
+  type LoginCredentials,
+  type ApiErrorResponse,
+} from '@billing/shared'
 
 interface AuthState {
   user: User | null
@@ -22,14 +29,17 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state): boolean => !!state.token && !!state.user,
     currentUser: (state): User | null => state.user,
-    userRole: (state): string | null => state.user?.role ?? null,
-    isAdmin: (state): boolean => state.user?.role === 'admin',
-    isAccountant: (state): boolean => state.user?.role === 'accountant',
+    userRole: (state): UserRole | null => state.user?.role ?? null,
+    isAdmin: (state): boolean => state.user?.role === UserRole.Admin,
+    isAccountant: (state): boolean => state.user?.role === UserRole.Accountant,
     canWrite: (state): boolean => {
       const role = state.user?.role
-      return role === 'admin' || role === 'accountant'
+      return role ? UserRolePermissions[role].canWrite : false
     },
-    canApprove: (state): boolean => state.user?.role === 'admin',
+    canApprove: (state): boolean => {
+      const role = state.user?.role
+      return role ? UserRolePermissions[role].canApprove : false
+    },
   },
 
   actions: {
