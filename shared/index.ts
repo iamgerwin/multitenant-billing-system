@@ -46,3 +46,43 @@ export type {
   InvoiceUpdatePayload,
   InvoiceStatusPayload,
 } from './types'
+
+// Export type guards
+export {
+  // Enum validators
+  isValidInvoiceStatus,
+  isValidUserRole,
+  // Entity type guards
+  isUser,
+  isInvoice,
+  isVendor,
+  isOrganization,
+  // Array type guards
+  isUserArray,
+  isInvoiceArray,
+  isVendorArray,
+} from './types/guards'
+
+// Export utility functions
+export {
+  // Invoice status utilities
+  getNextStatuses,
+  isValidTransition,
+  // Currency formatting
+  formatCurrency,
+  formatCompactCurrency,
+  // Date formatting
+  formatDate,
+  formatRelativeDate,
+  isDatePast,
+  isDateToday,
+  // Number formatting
+  formatNumber,
+  formatPercentage,
+} from './utils'
+
+// Export utility types
+export type {
+  CurrencyFormatOptions,
+  DateFormatOptions,
+} from './utils'
