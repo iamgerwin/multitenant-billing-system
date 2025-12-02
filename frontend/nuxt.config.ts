@@ -17,7 +17,8 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    typeCheck: true,
+    // Disable type checking in dev mode for faster startup (run separately with `npm run typecheck`)
+    typeCheck: process.env.NODE_ENV === 'production',
   },
 
   tailwindcss: {
@@ -26,6 +27,10 @@ export default defineNuxtConfig({
   },
 
   pinia: {
-    storesDirs: ['./stores/**'],
+    storesDirs: ['./stores'],
+  },
+
+  imports: {
+    dirs: ['stores'],
   },
 })
