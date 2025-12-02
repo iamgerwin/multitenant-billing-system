@@ -1,3 +1,5 @@
+import { resolve } from 'path'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -32,5 +34,22 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: ['stores'],
+  },
+
+  // Vite aliases for shared package resolution
+  alias: {
+    '@billing/shared': resolve(__dirname, '../shared'),
+  },
+
+  // Ensure Vite can resolve the shared package
+  vite: {
+    resolve: {
+      alias: {
+        '@billing/shared': resolve(__dirname, '../shared'),
+      },
+    },
+    optimizeDeps: {
+      include: ['@billing/shared'],
+    },
   },
 })
