@@ -1,11 +1,12 @@
 /**
- * Frontend TypeScript Types
+ * @billing/shared
  *
- * Re-exports all types from @billing/shared package.
- * This file maintains backwards compatibility with existing imports.
+ * Shared types and enums for the multitenant billing system.
+ * This package is the single source of truth for data structures
+ * used by both frontend and backend.
  */
 
-// Re-export everything from the shared package
+// Export all enums and enum utilities
 export {
   // Enums
   UserRole,
@@ -22,8 +23,9 @@ export {
   isFinalStatus,
   canEditInvoice,
   canDeleteInvoice,
-} from '@billing/shared'
+} from './enums'
 
+// Export all types
 export type {
   // Base types
   BaseEntity,
@@ -43,4 +45,4 @@ export type {
   InvoiceCreatePayload,
   InvoiceUpdatePayload,
   InvoiceStatusPayload,
-} from '@billing/shared'
+} from './types'
