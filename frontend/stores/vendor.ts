@@ -6,7 +6,7 @@ import type {
   ApiResponse,
   PaginatedResponse,
   ApiErrorResponse,
-} from '~/types'
+} from '@billing/shared'
 
 interface VendorState {
   vendors: Vendor[]
