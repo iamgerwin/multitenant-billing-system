@@ -1,4 +1,4 @@
-import type { ApiErrorResponse } from '~/types'
+import type { ApiErrorResponse } from '@billing/shared'
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>

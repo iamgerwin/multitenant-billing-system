@@ -219,5 +219,17 @@ export const useInvoiceStore = defineStore('invoice', {
     clearError() {
       this.error = null
     },
+
+    async generateInvoiceNumber(): Promise<string | null> {
+      try {
+        const api = useApi()
+        const response = await api.get<{ invoice_number: string }>('/invoices/generate-number')
+        return response.invoice_number
+      } catch (err) {
+        const error = err as ApiErrorResponse
+        this.error = error.message || 'Failed to generate invoice number'
+        return null
+      }
+    },
   },
 })

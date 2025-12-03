@@ -38,7 +38,12 @@ onMounted(() => {
       class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden"
     >
       <div class="flex items-center justify-between h-16 px-4 border-b">
-        <span class="text-lg font-semibold text-gray-900">Billing System</span>
+        <div class="min-w-0">
+          <span class="text-lg font-semibold text-gray-900">Billing System</span>
+          <p v-if="authStore.currentUser?.organization" class="text-xs text-gray-500 truncate">
+            {{ authStore.currentUser.organization.name }}
+          </p>
+        </div>
         <button
           class="text-gray-400 hover:text-gray-500"
           @click="isMobileMenuOpen = false"
@@ -78,8 +83,11 @@ onMounted(() => {
     <div class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
       <div class="flex flex-col flex-grow bg-white border-r border-gray-200">
         <div class="flex items-center h-16 px-4 border-b">
-          <NuxtLink to="/dashboard" class="text-lg font-semibold text-gray-900">
-            Billing System
+          <NuxtLink to="/dashboard" class="min-w-0">
+            <span class="text-lg font-semibold text-gray-900">Billing System</span>
+            <p v-if="authStore.currentUser?.organization" class="text-xs text-gray-500 truncate">
+              {{ authStore.currentUser.organization.name }}
+            </p>
           </NuxtLink>
         </div>
         <nav class="flex-1 px-2 py-4 space-y-1">
@@ -148,7 +156,12 @@ onMounted(() => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <span class="ml-4 text-lg font-semibold text-gray-900">Billing System</span>
+        <div class="ml-4 min-w-0 flex-1">
+          <span class="text-lg font-semibold text-gray-900">Billing System</span>
+          <p v-if="authStore.currentUser?.organization" class="text-xs text-gray-500 truncate">
+            {{ authStore.currentUser.organization.name }}
+          </p>
+        </div>
         <div class="ml-auto">
           <button
             class="p-1 text-gray-400 hover:text-gray-500"
