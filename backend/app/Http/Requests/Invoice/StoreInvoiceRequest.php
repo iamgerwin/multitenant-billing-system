@@ -36,7 +36,7 @@ class StoreInvoiceRequest extends FormRequest
                     ->whereNull('deleted_at'),
             ],
             'invoice_number' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 Rule::unique('invoices', 'invoice_number')
@@ -64,7 +64,6 @@ class StoreInvoiceRequest extends FormRequest
         return [
             'vendor_id.required' => 'Please select a vendor.',
             'vendor_id.exists' => 'The selected vendor is not valid.',
-            'invoice_number.required' => 'The invoice number is required.',
             'invoice_number.unique' => 'An invoice with this number already exists.',
             'invoice_date.required' => 'The invoice date is required.',
             'invoice_date.date' => 'Please provide a valid invoice date.',

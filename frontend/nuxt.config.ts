@@ -37,15 +37,16 @@ export default defineNuxtConfig({
   },
 
   // Vite aliases for shared package resolution
+  // Use /shared in Docker, ../shared for local dev
   alias: {
-    '@billing/shared': resolve(__dirname, '../shared'),
+    '@billing/shared': process.env.DOCKER_ENV ? '/shared' : resolve(__dirname, '../shared'),
   },
 
   // Ensure Vite can resolve the shared package
   vite: {
     resolve: {
       alias: {
-        '@billing/shared': resolve(__dirname, '../shared'),
+        '@billing/shared': process.env.DOCKER_ENV ? '/shared' : resolve(__dirname, '../shared'),
       },
     },
     optimizeDeps: {

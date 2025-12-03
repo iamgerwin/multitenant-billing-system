@@ -45,7 +45,7 @@ class VendorController extends Controller
 
         return response()->json([
             'message' => 'Vendor created successfully.',
-            'vendor' => new VendorResource($vendor),
+            'data' => new VendorResource($vendor),
         ], Response::HTTP_CREATED);
     }
 
@@ -57,7 +57,7 @@ class VendorController extends Controller
         $vendor->loadCount('invoices');
 
         return response()->json([
-            'vendor' => new VendorResource($vendor),
+            'data' => new VendorResource($vendor),
         ]);
     }
 
@@ -70,7 +70,7 @@ class VendorController extends Controller
 
         return response()->json([
             'message' => 'Vendor updated successfully.',
-            'vendor' => new VendorResource($vendor->fresh()),
+            'data' => new VendorResource($vendor->fresh()),
         ]);
     }
 
