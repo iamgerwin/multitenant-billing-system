@@ -1,0 +1,17 @@
+{
+  "name": "multitenant-billing-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A full-stack multitenant billing system",
+  "scripts": {
+    "typecheck": "npm run typecheck:shared && npm run typecheck:frontend",
+    "typecheck:shared": "cd shared && npm run typecheck",
+    "typecheck:frontend": "cd frontend && npm run typecheck",
+    "validate:enums": "./scripts/validate-enums.sh",
+    "validate": "npm run validate:enums && npm run typecheck"
+  },
+  "workspaces": [
+    "shared",
+    "frontend"
+  ]
+}
