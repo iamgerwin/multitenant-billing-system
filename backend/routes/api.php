@@ -43,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('vendors', VendorController::class);
 
         // Invoices
+        Route::get('/invoices/generate-number', [InvoiceController::class, 'generateNumber'])
+            ->name('invoices.generate-number');
         Route::apiResource('invoices', InvoiceController::class);
         Route::patch('/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])
             ->name('invoices.update-status');
