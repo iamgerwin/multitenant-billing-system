@@ -12,6 +12,7 @@ use App\Http\Requests\Invoice\UpdateInvoiceRequest;
 use App\Http\Requests\Invoice\UpdateInvoiceStatusRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
+use App\Services\InvoiceNumberGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -20,17 +21,44 @@ use Symfony\Component\HttpFoundation\Response;
 class InvoiceController extends Controller
 {
     public function __construct(
-        private InvoiceRepositoryInterface $invoiceRepository
+        private InvoiceRepositoryInterface $invoiceRepository,
+        private InvoiceNumberGenerator $invoiceNumberGenerator
     ) {}
+
+    /**
+     * Generate a new unique invoice number.
+     */
+    public function generateNumber(Request $request): JsonResponse
+    {
+        $organization = $request->user()->organization;
+        $invoiceNumber = $this->invoiceNumberGenerator->generate($organization);
+
+        return response()->json([
+            'invoice_number' => $invoiceNumber,
+        ]);
+    }
 
     /**
      * Display a listing of invoices.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $invoices = $this->invoiceRepository->paginate(
-            $request->integer('per_page', 15)
-        );
+        $query = Invoice::with(['vendor', 'creator']);
+
+        // Filter by status
+        if ($request->has('status') && $request->input('status')) {
+            $status = InvoiceStatus::tryFrom($request->input('status'));
+            if ($status) {
+                $query->where('status', $status);
+            }
+        }
+
+        // Filter by vendor
+        if ($request->has('vendor_id') && $request->input('vendor_id')) {
+            $query->where('vendor_id', $request->integer('vendor_id'));
+        }
+
+        $invoices = $query->latest()->paginate($request->integer('per_page', 15));
 
         return InvoiceResource::collection($invoices);
     }
@@ -44,6 +72,13 @@ class InvoiceController extends Controller
         $data['organization_id'] = $request->user()->organization_id;
         $data['created_by'] = $request->user()->id;
         $data['status'] = InvoiceStatus::Pending;
+
+        // Auto-generate invoice number if not provided
+        if (empty($data['invoice_number'])) {
+            $data['invoice_number'] = $this->invoiceNumberGenerator->generate(
+                $request->user()->organization
+            );
+        }
 
         // Calculate total amount
         $data['total_amount'] = ($data['subtotal'] ?? 0)
