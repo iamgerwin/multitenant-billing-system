@@ -55,11 +55,13 @@ services:
     container_name: billing_frontend
     restart: unless-stopped
     environment:
-      - NUXT_PUBLIC_API_BASE=${APP_URL:-http://localhost:8888}/api
+      - NUXT_PUBLIC_API_BASE_URL=${APP_URL:-http://localhost:8888}/api
+      - DOCKER_ENV=true
     ports:
       - "3333:3000"
     volumes:
       - ./frontend:/app
+      - ./shared:/shared
       - /app/node_modules
       - /app/.nuxt
     depends_on:
