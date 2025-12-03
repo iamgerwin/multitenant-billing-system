@@ -90,7 +90,7 @@ class InvoiceController extends Controller
 
         return response()->json([
             'message' => 'Invoice created successfully.',
-            'invoice' => new InvoiceResource($invoice),
+            'data' => new InvoiceResource($invoice),
         ], Response::HTTP_CREATED);
     }
 
@@ -102,7 +102,7 @@ class InvoiceController extends Controller
         $invoice->load(['vendor', 'creator', 'approver']);
 
         return response()->json([
-            'invoice' => new InvoiceResource($invoice),
+            'data' => new InvoiceResource($invoice),
         ]);
     }
 
@@ -126,7 +126,7 @@ class InvoiceController extends Controller
 
         return response()->json([
             'message' => 'Invoice updated successfully.',
-            'invoice' => new InvoiceResource($invoice->fresh()),
+            'data' => new InvoiceResource($invoice->fresh()),
         ]);
     }
 
@@ -158,7 +158,7 @@ class InvoiceController extends Controller
 
         return response()->json([
             'message' => 'Invoice status updated successfully.',
-            'invoice' => new InvoiceResource($invoice->fresh()),
+            'data' => new InvoiceResource($invoice->fresh()),
         ]);
     }
 
