@@ -74,7 +74,7 @@ class InvoiceApiTest extends TestCase
             ->assertJsonPath('data.id', $invoice->id);
     }
 
-    public function test_accountant_can_create_invoice(): void
+    public function test_admin_can_create_invoice(): void
     {
         $invoiceData = [
             'vendor_id' => $this->vendor->id,
@@ -86,7 +86,7 @@ class InvoiceApiTest extends TestCase
             'discount_amount' => 50.00,
         ];
 
-        $response = $this->actingAs($this->accountant)
+        $response = $this->actingAs($this->adminUser)
             ->postJson('/api/invoices', $invoiceData);
 
         $response->assertCreated()
@@ -97,6 +97,23 @@ class InvoiceApiTest extends TestCase
             'invoice_number' => 'INV-001',
             'organization_id' => $this->organization->id,
         ]);
+    }
+
+    public function test_accountant_cannot_create_invoice(): void
+    {
+        $invoiceData = [
+            'vendor_id' => $this->vendor->id,
+            'invoice_number' => 'INV-001',
+            'invoice_date' => now()->toDateString(),
+            'due_date' => now()->addDays(30)->toDateString(),
+            'subtotal' => 1000.00,
+        ];
+
+        // Accountant is read-only, cannot create invoices
+        $response = $this->actingAs($this->accountant)
+            ->postJson('/api/invoices', $invoiceData);
+
+        $response->assertForbidden();
     }
 
     public function test_admin_can_approve_invoice(): void

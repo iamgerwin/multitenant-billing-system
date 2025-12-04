@@ -36,7 +36,7 @@ erDiagram
         string name
         string email UK
         string password
-        string role "enum: admin, accountant, user"
+        string role "enum: admin, accountant"
         boolean is_active "default: true"
         timestamp email_verified_at
         timestamp created_at
@@ -131,7 +131,7 @@ Team members belonging to an organization with role-based access control.
 | name               | VARCHAR(255)  | NOT NULL             | User's full name                   |
 | email              | VARCHAR(255)  | UNIQUE, NOT NULL     | Email address (login)              |
 | password           | VARCHAR(255)  | NOT NULL             | Hashed password                    |
-| role               | VARCHAR(255)  | DEFAULT 'user'       | Role enum: admin, accountant, user |
+| role               | VARCHAR(255)  | DEFAULT 'accountant' | Role enum: admin, accountant |
 | is_active          | BOOLEAN       | DEFAULT true         | Active status flag                 |
 | email_verified_at  | TIMESTAMP     | NULLABLE             | Email verification timestamp       |
 | remember_token     | VARCHAR(100)  | NULLABLE             | Remember me token                  |
@@ -244,11 +244,10 @@ User (1) ──────────────< (N) Invoice (as approver)
 
 ### UserRole
 
-| Value      | Label      | Permissions                        |
-|------------|------------|-------------------------------------|
-| admin      | Admin      | canWrite, canApprove, canManageUsers|
-| accountant | Accountant | canWrite                           |
-| user       | User       | View only                          |
+| Value      | Label        | Permissions                         | Description |
+|------------|--------------|-------------------------------------|-------------|
+| admin      | Administrator| canWrite, canApprove, canManageUsers| Full org-level access |
+| accountant | Accountant   | (none)                              | Read-only access |
 
 ### InvoiceStatus
 

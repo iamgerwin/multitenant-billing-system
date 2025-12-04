@@ -200,7 +200,6 @@ enum UserRole: string
 {
     case Admin = 'admin';
     case Accountant = 'accountant';
-    case User = 'user';
 }
 ```
 
@@ -209,7 +208,6 @@ enum UserRole: string
 export enum UserRole {
   Admin = 'admin',
   Accountant = 'accountant',
-  User = 'user',
 }
 ```
 
@@ -276,11 +274,10 @@ export enum InvoiceStatus {
 
 ## Role-Based Permissions
 
-| Role       | canWrite | canApprove | canManageUsers |
-|------------|----------|------------|----------------|
-| Admin      | Yes      | Yes        | Yes            |
-| Accountant | Yes      | No         | No             |
-| User       | No       | No         | No             |
+| Role       | canWrite | canApprove | canManageUsers | Description |
+|------------|----------|------------|----------------|-------------|
+| Admin      | Yes      | Yes        | Yes            | Full org-level access |
+| Accountant | No       | No         | No             | Read-only access |
 
 ## Docker Infrastructure
 

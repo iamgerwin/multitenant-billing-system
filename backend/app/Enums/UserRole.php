@@ -8,7 +8,6 @@ enum UserRole: string
 {
     case Admin = 'admin';
     case Accountant = 'accountant';
-    case User = 'user';
 
     /**
      * Get the human-readable label for the role.
@@ -18,34 +17,31 @@ enum UserRole: string
         return match ($this) {
             self::Admin => 'Administrator',
             self::Accountant => 'Accountant',
-            self::User => 'User',
         };
     }
 
     /**
      * Check if the role has write permissions.
+     * Only Admin can write (create, update, delete resources).
+     * Accountant is read-only.
      */
     public function canWrite(): bool
     {
-        return match ($this) {
-            self::Admin, self::Accountant => true,
-            self::User => false,
-        };
+        return $this === self::Admin;
     }
 
     /**
      * Check if the role can approve invoices.
+     * Only Admin can approve invoices.
      */
     public function canApprove(): bool
     {
-        return match ($this) {
-            self::Admin => true,
-            self::Accountant, self::User => false,
-        };
+        return $this === self::Admin;
     }
 
     /**
      * Check if the role can manage users.
+     * Only Admin can manage users.
      */
     public function canManageUsers(): bool
     {

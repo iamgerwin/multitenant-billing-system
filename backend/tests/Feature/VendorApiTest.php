@@ -19,7 +19,7 @@ class VendorApiTest extends TestCase
 
     protected User $adminUser;
 
-    protected User $regularUser;
+    protected User $accountantUser;
 
     protected function setUp(): void
     {
@@ -32,9 +32,10 @@ class VendorApiTest extends TestCase
             'role' => UserRole::Admin,
         ]);
 
-        $this->regularUser = User::factory()->create([
+        // Accountant is read-only, cannot perform write operations
+        $this->accountantUser = User::factory()->create([
             'organization_id' => $this->organization->id,
-            'role' => UserRole::User,
+            'role' => UserRole::Accountant,
         ]);
     }
 
@@ -128,7 +129,7 @@ class VendorApiTest extends TestCase
         $response->assertNotFound();
     }
 
-    public function test_regular_user_cannot_create_vendor(): void
+    public function test_accountant_cannot_create_vendor(): void
     {
         $vendorData = [
             'name' => 'Test Vendor',
@@ -136,7 +137,8 @@ class VendorApiTest extends TestCase
             'email' => 'vendor@example.com',
         ];
 
-        $response = $this->actingAs($this->regularUser)
+        // Accountant is read-only, cannot create vendors
+        $response = $this->actingAs($this->accountantUser)
             ->postJson('/api/vendors', $vendorData);
 
         $response->assertForbidden();

@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]);
 
-            // Accountant user
+            // Accountant user (read-only access)
             User::create([
                 'organization_id' => $demoOrg->id,
                 'name' => 'Demo Accountant',
@@ -43,21 +43,11 @@ class UserSeeder extends Seeder
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]);
-
-            // Regular user
-            User::create([
-                'organization_id' => $demoOrg->id,
-                'name' => 'Demo User',
-                'email' => 'user@demo.com',
-                'password' => Hash::make('password'),
-                'role' => UserRole::User,
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]);
         }
 
         // Acme organization users
         if ($acmeOrg) {
+            // Admin user
             User::create([
                 'organization_id' => $acmeOrg->id,
                 'name' => 'Acme Admin',
@@ -68,6 +58,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]);
 
+            // Accountant user (read-only access)
             User::create([
                 'organization_id' => $acmeOrg->id,
                 'name' => 'Acme Accountant',
