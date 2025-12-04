@@ -4,6 +4,10 @@ definePageMeta({
   middleware: 'guest',
 })
 
+useHead({
+  title: 'Welcome',
+})
+
 const authStore = useAuthStore()
 const router = useRouter()
 
