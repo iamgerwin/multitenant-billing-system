@@ -150,22 +150,13 @@ onUnmounted(() => {
           :back-label="vendorId ? 'Back to Vendor' : undefined"
         />
         <!-- Vendor filter indicator -->
-        <div v-if="vendor && vendorId" class="mt-2 flex items-center gap-2">
+        <div v-if="vendor && vendorId" class="mt-2">
           <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-violet-100 text-violet-800">
             <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             Filtered by: {{ vendor.name }}
           </span>
-          <NuxtLink
-            to="/invoices"
-            class="inline-flex items-center px-2 py-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-          >
-            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Clear filter
-          </NuxtLink>
         </div>
       </div>
       <NuxtLink
