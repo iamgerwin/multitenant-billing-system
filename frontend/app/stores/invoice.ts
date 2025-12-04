@@ -15,6 +15,7 @@ interface InvoiceFilters {
   status?: InvoiceStatus
   vendor_id?: number
   search?: string
+  sort?: string // e.g., '-created_at', 'invoice_date', '-total_amount'
 }
 
 interface InvoiceState {
