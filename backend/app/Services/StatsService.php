@@ -17,14 +17,16 @@ class StatsService
     private const CACHE_TTL = 120;
 
     /**
-     * Get dashboard stats for the current organization.
+     * Get dashboard stats for the current user within their organization.
      *
      * @param int $organizationId
+     * @param int $userId
      * @return array<string, mixed>
      */
-    public function getDashboardStats(int $organizationId): array
+    public function getDashboardStats(int $organizationId, int $userId): array
     {
-        $cacheKey = "org_{$organizationId}_dashboard_stats";
+        $version = $this->getCacheVersion($organizationId);
+        $cacheKey = "user_{$userId}_org_{$organizationId}_stats_v{$version}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($organizationId) {
             return $this->computeStats($organizationId);
@@ -32,13 +34,29 @@ class StatsService
     }
 
     /**
-     * Invalidate cached stats for an organization.
+     * Invalidate cached stats for all users in an organization.
+     * Uses version-based invalidation to efficiently invalidate all user caches.
      *
      * @param int $organizationId
      */
     public function invalidateCache(int $organizationId): void
     {
-        Cache::forget("org_{$organizationId}_dashboard_stats");
+        $versionKey = "org_{$organizationId}_stats_version";
+        $currentVersion = (int) Cache::get($versionKey, 0);
+        Cache::put($versionKey, $currentVersion + 1);
+    }
+
+    /**
+     * Get the current cache version for an organization.
+     *
+     * @param int $organizationId
+     * @return int
+     */
+    private function getCacheVersion(int $organizationId): int
+    {
+        $versionKey = "org_{$organizationId}_stats_version";
+
+        return (int) Cache::get($versionKey, 0);
     }
 
     /**

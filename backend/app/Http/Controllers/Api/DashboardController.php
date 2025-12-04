@@ -20,8 +20,8 @@ class DashboardController extends Controller
      */
     public function stats(Request $request): JsonResponse
     {
-        $organizationId = $request->user()->organization_id;
-        $stats = $this->statsService->getDashboardStats($organizationId);
+        $user = $request->user();
+        $stats = $this->statsService->getDashboardStats($user->organization_id, $user->id);
 
         return response()->json([
             'data' => $stats,
