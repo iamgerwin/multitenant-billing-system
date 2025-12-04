@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Services\StatsService;
 
@@ -23,14 +24,21 @@ class InvoiceObserver
 
     /**
      * Handle the Invoice "updated" event.
+     * Invalidates cache only if status changed or deleted_at changed.
      */
     public function updated(Invoice $invoice): void
     {
-        $this->invalidateStats($invoice);
+        // Check if status or deletion status changed
+        $statusChanged = $invoice->isDirty('status');
+        $deletionStatusChanged = $invoice->isDirty('deleted_at');
+
+        if ($statusChanged || $deletionStatusChanged) {
+            $this->invalidateStats($invoice);
+        }
     }
 
     /**
-     * Handle the Invoice "deleted" event.
+     * Handle the Invoice "deleted" event (soft delete).
      */
     public function deleted(Invoice $invoice): void
     {
@@ -38,7 +46,7 @@ class InvoiceObserver
     }
 
     /**
-     * Handle the Invoice "restored" event.
+     * Handle the Invoice "restored" event (restore from soft delete).
      */
     public function restored(Invoice $invoice): void
     {
@@ -46,7 +54,7 @@ class InvoiceObserver
     }
 
     /**
-     * Handle the Invoice "force deleted" event.
+     * Handle the Invoice "force deleted" event (permanent deletion).
      */
     public function forceDeleted(Invoice $invoice): void
     {

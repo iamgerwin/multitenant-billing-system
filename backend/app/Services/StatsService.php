@@ -8,127 +8,129 @@ use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\Vendor;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class StatsService
 {
+    private const CACHE_VERSION_KEY = 'org_{organization_id}_stats_version';
+    private const CACHE_KEY = 'user_{user_id}_org_{organization_id}_stats_v{version}';
+
     /**
-     * Get dashboard stats for the current user within their organization.
-     *
-     * @param int $organizationId
-     * @param int $userId
-     * @return array<string, mixed>
+     * Get dashboard statistics for an organization, with optional caching.
      */
     public function getDashboardStats(int $organizationId, int $userId): array
     {
-        // Check if caching is enabled (disabled by default for tenant isolation safety)
-        if (!$this->isCacheEnabled()) {
+        if (!config('cache.dashboard_stats_enabled', false)) {
             return $this->computeStats($organizationId);
         }
 
         $version = $this->getCacheVersion($organizationId);
-        $cacheKey = "user_{$userId}_org_{$organizationId}_stats_v{$version}";
+        $cacheKey = $this->getCacheKey($userId, $organizationId, $version);
+        $ttl = config('cache.dashboard_stats_ttl', 120);
 
-        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($organizationId) {
+        return Cache::remember($cacheKey, $ttl, function () use ($organizationId) {
             return $this->computeStats($organizationId);
         });
     }
 
     /**
-     * Invalidate cached stats for all users in an organization.
-     * Uses version-based invalidation to efficiently invalidate all user caches.
-     *
-     * @param int $organizationId
-     */
-    public function invalidateCache(int $organizationId): void
-    {
-        if (!$this->isCacheEnabled()) {
-            return;
-        }
-
-        $versionKey = "org_{$organizationId}_stats_version";
-        $currentVersion = (int) Cache::get($versionKey, 0);
-        Cache::put($versionKey, $currentVersion + 1);
-    }
-
-    /**
-     * Check if dashboard stats caching is enabled.
-     * Disabled by default for maximum tenant isolation safety.
-     *
-     * @return bool
-     */
-    private function isCacheEnabled(): bool
-    {
-        return (bool) config('cache.dashboard_stats_enabled', false);
-    }
-
-    /**
-     * Get the cache TTL in seconds.
-     *
-     * @return int
-     */
-    private function getCacheTtl(): int
-    {
-        return (int) config('cache.dashboard_stats_ttl', 120);
-    }
-
-    /**
-     * Get the current cache version for an organization.
-     *
-     * @param int $organizationId
-     * @return int
-     */
-    private function getCacheVersion(int $organizationId): int
-    {
-        $versionKey = "org_{$organizationId}_stats_version";
-
-        return (int) Cache::get($versionKey, 0);
-    }
-
-    /**
-     * Compute stats from database.
-     *
-     * @param int $organizationId
-     * @return array<string, mixed>
+     * Compute statistics for an organization.
+     * Excludes rejected and deleted invoices from total calculations.
      */
     private function computeStats(int $organizationId): array
     {
-        // Invoice stats - using aggregation queries for efficiency
-        // Explicitly filter by organization_id to ensure multi-tenant isolation
-        $invoiceStats = Invoice::withoutGlobalScopes()
+        $pendingStatus = InvoiceStatus::Pending->value;
+        $approvedStatus = InvoiceStatus::Approved->value;
+        $paidStatus = InvoiceStatus::Paid->value;
+        $rejectedStatus = InvoiceStatus::Rejected->value;
+
+        // Get invoice statistics
+        // Exclude rejected and deleted (soft-deleted) invoices from totals
+        $invoiceStats = Invoice::query()
             ->where('organization_id', $organizationId)
-            ->selectRaw('COUNT(*) as total_count')
-            ->selectRaw('SUM(total_amount) as total_amount')
-            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending_count', [InvoiceStatus::Pending->value])
-            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved_count', [InvoiceStatus::Approved->value])
-            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as paid_count', [InvoiceStatus::Paid->value])
-            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as rejected_count', [InvoiceStatus::Rejected->value])
-            ->selectRaw('SUM(CASE WHEN status = ? THEN total_amount ELSE 0 END) as paid_amount', [InvoiceStatus::Paid->value])
+            ->whereNull('deleted_at')
+            ->where('status', '!=', $rejectedStatus)
+            ->selectRaw(
+                'COUNT(*) as total_count,
+                COALESCE(SUM(total_amount), 0) as total_amount,
+                COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) as pending_count,
+                COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) as approved_count,
+                COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) as paid_count,
+                COALESCE(SUM(CASE WHEN status = ? THEN total_amount ELSE 0 END), 0) as paid_amount',
+                [$pendingStatus, $approvedStatus, $paidStatus, $paidStatus]
+            )
             ->first();
 
-        // Vendor stats - using parameter binding for database-agnostic boolean comparison
-        // Explicitly filter by organization_id to ensure multi-tenant isolation
-        $vendorStats = Vendor::withoutGlobalScopes()
+        // Count rejected invoices separately (for reference, but not in total)
+        $rejectedCount = Invoice::query()
             ->where('organization_id', $organizationId)
-            ->selectRaw('COUNT(*) as total_count')
-            ->selectRaw('SUM(CASE WHEN is_active = ? THEN 1 ELSE 0 END) as active_count', [true])
+            ->whereNull('deleted_at')
+            ->where('status', $rejectedStatus)
+            ->count();
+
+        // Count deleted invoices separately (for reference)
+        $deletedCount = Invoice::query()
+            ->where('organization_id', $organizationId)
+            ->onlyTrashed()
+            ->count();
+
+        // Get vendor statistics
+        $vendorStats = Vendor::query()
+            ->where('organization_id', $organizationId)
+            ->selectRaw(
+                'COUNT(*) as total_count,
+                COALESCE(SUM(CASE WHEN is_active = ? THEN 1 ELSE 0 END), 0) as active_count',
+                [true]
+            )
             ->first();
 
         return [
             'invoices' => [
-                'total_count' => (int) ($invoiceStats->total_count ?? 0),
-                'total_amount' => (float) ($invoiceStats->total_amount ?? 0),
-                'pending_count' => (int) ($invoiceStats->pending_count ?? 0),
-                'approved_count' => (int) ($invoiceStats->approved_count ?? 0),
-                'paid_count' => (int) ($invoiceStats->paid_count ?? 0),
-                'rejected_count' => (int) ($invoiceStats->rejected_count ?? 0),
-                'paid_amount' => (float) ($invoiceStats->paid_amount ?? 0),
+                'total_count' => (int) $invoiceStats->total_count,
+                'total_amount' => (float) $invoiceStats->total_amount,
+                'pending_count' => (int) $invoiceStats->pending_count,
+                'approved_count' => (int) $invoiceStats->approved_count,
+                'paid_count' => (int) $invoiceStats->paid_count,
+                'paid_amount' => (float) $invoiceStats->paid_amount,
+                'rejected_count' => (int) $rejectedCount,
+                'deleted_count' => (int) $deletedCount,
             ],
             'vendors' => [
-                'total_count' => (int) ($vendorStats->total_count ?? 0),
-                'active_count' => (int) ($vendorStats->active_count ?? 0),
+                'total_count' => (int) $vendorStats->total_count,
+                'active_count' => (int) $vendorStats->active_count,
             ],
             'organization_id' => $organizationId,
             'cached_at' => now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * Invalidate cache for an organization's statistics.
+     */
+    public function invalidateCache(int $organizationId): void
+    {
+        $versionKey = str_replace('{organization_id}', (string) $organizationId, self::CACHE_VERSION_KEY);
+        Cache::increment($versionKey);
+    }
+
+    /**
+     * Get the current cache version for an organization.
+     */
+    private function getCacheVersion(int $organizationId): int
+    {
+        $versionKey = str_replace('{organization_id}', (string) $organizationId, self::CACHE_VERSION_KEY);
+        return (int) Cache::get($versionKey, 1);
+    }
+
+    /**
+     * Get the cache key for a user's organization stats.
+     */
+    private function getCacheKey(int $userId, int $organizationId, int $version): string
+    {
+        return str_replace(
+            ['{user_id}', '{organization_id}', '{version}'],
+            [(string) $userId, (string) $organizationId, (string) $version],
+            self::CACHE_KEY
+        );
     }
 }
