@@ -114,4 +114,20 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard Stats Cache Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls caching behavior for dashboard statistics. Caching is DISABLED
+    | by default to ensure maximum tenant isolation safety in multi-tenant
+    | environments. Enable only if performance is critical and you have
+    | verified tenant isolation is working correctly.
+    |
+    */
+
+    'dashboard_stats_enabled' => env('DASHBOARD_STATS_CACHE_ENABLED', false),
+
+    'dashboard_stats_ttl' => env('DASHBOARD_STATS_CACHE_TTL', 120),
+
 ];

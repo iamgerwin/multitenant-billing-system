@@ -25,6 +25,10 @@ class DashboardController extends Controller
 
         return response()->json([
             'data' => $stats,
+        ])->withHeaders([
+            'Cache-Control' => 'no-cache, no-store, must-revalidate, private',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 }

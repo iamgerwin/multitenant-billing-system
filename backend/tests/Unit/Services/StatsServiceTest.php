@@ -98,8 +98,11 @@ class StatsServiceTest extends TestCase
         $this->assertEquals(3, $stats['vendors']['active_count']);
     }
 
-    public function test_caches_stats_per_user(): void
+    public function test_caches_stats_per_user_when_enabled(): void
     {
+        // Enable caching for this test
+        config(['cache.dashboard_stats_enabled' => true]);
+
         Cache::flush();
 
         // First call should compute and cache
@@ -113,8 +116,28 @@ class StatsServiceTest extends TestCase
         $this->assertEquals($cachedAt1, $cachedAt2);
     }
 
-    public function test_different_users_have_separate_caches(): void
+    public function test_does_not_cache_when_disabled(): void
     {
+        // Ensure caching is disabled (default)
+        config(['cache.dashboard_stats_enabled' => false]);
+
+        Cache::flush();
+
+        // First call
+        $stats1 = $this->statsService->getDashboardStats($this->organization->id, $this->user->id);
+
+        // Verify no cache entry was created
+        $versionKey = "org_{$this->organization->id}_stats_version";
+        $version = (int) Cache::get($versionKey, 0);
+        $cacheKey = "user_{$this->user->id}_org_{$this->organization->id}_stats_v{$version}";
+        $this->assertFalse(Cache::has($cacheKey));
+    }
+
+    public function test_different_users_have_separate_caches_when_enabled(): void
+    {
+        // Enable caching for this test
+        config(['cache.dashboard_stats_enabled' => true]);
+
         $otherUser = User::factory()->create([
             'organization_id' => $this->organization->id,
             'role' => UserRole::Admin,
@@ -137,8 +160,11 @@ class StatsServiceTest extends TestCase
         $this->assertEquals($stats1['invoices']['total_count'], $stats2['invoices']['total_count']);
     }
 
-    public function test_invalidate_cache_increments_version(): void
+    public function test_invalidate_cache_increments_version_when_enabled(): void
     {
+        // Enable caching for this test
+        config(['cache.dashboard_stats_enabled' => true]);
+
         Cache::flush();
 
         // Get initial version (0 when no version exists)
@@ -165,8 +191,11 @@ class StatsServiceTest extends TestCase
         $this->assertTrue(Cache::has($newCacheKey));
     }
 
-    public function test_invalidation_affects_all_users_in_organization(): void
+    public function test_invalidation_affects_all_users_in_organization_when_enabled(): void
     {
+        // Enable caching for this test
+        config(['cache.dashboard_stats_enabled' => true]);
+
         $otherUser = User::factory()->create([
             'organization_id' => $this->organization->id,
             'role' => UserRole::Admin,

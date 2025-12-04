@@ -12,11 +12,6 @@ use Illuminate\Support\Facades\Cache;
 class StatsService
 {
     /**
-     * Cache TTL in seconds (2 minutes).
-     */
-    private const CACHE_TTL = 120;
-
-    /**
      * Get dashboard stats for the current user within their organization.
      *
      * @param int $organizationId
@@ -25,10 +20,15 @@ class StatsService
      */
     public function getDashboardStats(int $organizationId, int $userId): array
     {
+        // Check if caching is enabled (disabled by default for tenant isolation safety)
+        if (!$this->isCacheEnabled()) {
+            return $this->computeStats($organizationId);
+        }
+
         $version = $this->getCacheVersion($organizationId);
         $cacheKey = "user_{$userId}_org_{$organizationId}_stats_v{$version}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($organizationId) {
+        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($organizationId) {
             return $this->computeStats($organizationId);
         });
     }
@@ -41,9 +41,34 @@ class StatsService
      */
     public function invalidateCache(int $organizationId): void
     {
+        if (!$this->isCacheEnabled()) {
+            return;
+        }
+
         $versionKey = "org_{$organizationId}_stats_version";
         $currentVersion = (int) Cache::get($versionKey, 0);
         Cache::put($versionKey, $currentVersion + 1);
+    }
+
+    /**
+     * Check if dashboard stats caching is enabled.
+     * Disabled by default for maximum tenant isolation safety.
+     *
+     * @return bool
+     */
+    private function isCacheEnabled(): bool
+    {
+        return (bool) config('cache.dashboard_stats_enabled', false);
+    }
+
+    /**
+     * Get the cache TTL in seconds.
+     *
+     * @return int
+     */
+    private function getCacheTtl(): int
+    {
+        return (int) config('cache.dashboard_stats_ttl', 120);
     }
 
     /**
@@ -102,6 +127,7 @@ class StatsService
                 'total_count' => (int) ($vendorStats->total_count ?? 0),
                 'active_count' => (int) ($vendorStats->active_count ?? 0),
             ],
+            'organization_id' => $organizationId,
             'cached_at' => now()->toIso8601String(),
         ];
     }
