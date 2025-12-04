@@ -9,6 +9,7 @@ const route = useRoute()
 const invoiceStore = useInvoiceStore()
 const vendorStore = useVendorStore()
 const authStore = useAuthStore()
+const statsStore = useStatsStore()
 
 const currentPage = ref(1)
 const selectedStatus = ref<InvoiceStatus | ''>('')
@@ -81,10 +82,10 @@ const getStatusClasses = (status: string): string => {
 }
 
 const stats = computed(() => ({
-  total: invoiceStore.pagination.total,
-  pending: invoiceStore.invoices.filter((i) => i.status === 'pending').length,
-  approved: invoiceStore.invoices.filter((i) => i.status === 'approved').length,
-  totalAmount: invoiceStore.totalAmount,
+  total: statsStore.totalInvoiceCount,
+  pending: statsStore.pendingInvoiceCount,
+  approved: statsStore.approvedInvoiceCount,
+  totalAmount: statsStore.totalInvoiceAmount,
 }))
 
 const loadInvoices = async () => {
@@ -127,7 +128,10 @@ onMounted(async () => {
   if (vendorId.value) {
     await vendorStore.fetchVendor(vendorId.value)
   }
-  await loadInvoices()
+  await Promise.all([
+    statsStore.fetchStats(),
+    loadInvoices(),
+  ])
 })
 
 onUnmounted(() => {

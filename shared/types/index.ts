@@ -246,3 +246,37 @@ export interface InvoiceStatusPayload {
   payment_method?: string | null
   payment_reference?: string | null
 }
+
+// ============================================================================
+// Dashboard Stats Types
+// ============================================================================
+
+/**
+ * Invoice statistics
+ */
+export interface InvoiceStats {
+  total_count: number
+  total_amount: number
+  pending_count: number
+  approved_count: number
+  paid_count: number
+  rejected_count: number
+  paid_amount: number
+}
+
+/**
+ * Vendor statistics
+ */
+export interface VendorStats {
+  total_count: number
+  active_count: number
+}
+
+/**
+ * Dashboard statistics response
+ */
+export interface DashboardStats {
+  invoices: InvoiceStats
+  vendors: VendorStats
+  cached_at: string
+}

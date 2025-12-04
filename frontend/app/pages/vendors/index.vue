@@ -9,6 +9,7 @@ useHead({
 
 const vendorStore = useVendorStore()
 const authStore = useAuthStore()
+const statsStore = useStatsStore()
 
 const currentPage = ref(1)
 const searchQuery = ref('')
@@ -21,10 +22,10 @@ const formatCurrency = (amount: number): string => {
 }
 
 const stats = computed(() => ({
-  total: vendorStore.pagination.total,
-  active: vendorStore.vendors.filter((v) => v.is_active).length,
-  inactive: vendorStore.vendors.filter((v) => !v.is_active).length,
-  totalAmount: vendorStore.vendors.reduce((sum, v) => sum + (v.total_invoice_amount || 0), 0),
+  total: statsStore.totalVendorCount,
+  active: statsStore.activeVendorCount,
+  inactive: statsStore.totalVendorCount - statsStore.activeVendorCount,
+  totalAmount: statsStore.totalInvoiceAmount,
 }))
 
 const filteredVendors = computed(() => {
@@ -53,8 +54,11 @@ const handleDelete = async (id: number) => {
   }
 }
 
-onMounted(() => {
-  loadVendors()
+onMounted(async () => {
+  await Promise.all([
+    statsStore.fetchStats(),
+    loadVendors(),
+  ])
 })
 </script>
 

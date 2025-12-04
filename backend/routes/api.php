@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\VendorController;
@@ -35,6 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Routes requiring tenant context
     Route::middleware('tenant')->group(function () {
+        // Dashboard
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats'])
+            ->name('dashboard.stats');
+
         // Organization
         Route::get('/organization', [OrganizationController::class, 'show'])
             ->name('organization.show');
