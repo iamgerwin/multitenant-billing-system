@@ -9,7 +9,7 @@ A full-stack multitenant billing system with vendor management, invoice tracking
 - **Shared**: TypeScript package with types, enums, and utilities
 - **Infrastructure**: Docker Compose
 - **Project Management**: [ClickUp](https://sharing.clickup.com/90161067116/b/4-90165755197-2/board)
-- **Deployed**: [Production](http://77.42.19.179:3333/login))
+- **Deployed**: [Production](http://77.42.19.179:3333/login)
 
 ## Monorepo Structure
 
