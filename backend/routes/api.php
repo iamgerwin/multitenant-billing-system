@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::prefix('auth')->name('auth.')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,1') // 5 attempts per minute to prevent brute force
+        ->name('login');
 });
 
 // Protected routes

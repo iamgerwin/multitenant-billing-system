@@ -126,4 +126,29 @@ class AuthenticationTest extends TestCase
 
         $response->assertUnauthorized();
     }
+
+    public function test_login_rate_limiting_blocks_after_threshold(): void
+    {
+        User::factory()->create([
+            'organization_id' => $this->organization->id,
+            'email' => 'ratelimit@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        // Make 5 failed login attempts (the limit)
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => 'ratelimit@example.com',
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        // The 6th attempt should be rate limited
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'ratelimit@example.com',
+            'password' => 'wrong-password',
+        ]);
+
+        $response->assertStatus(429); // Too Many Requests
+    }
 }
