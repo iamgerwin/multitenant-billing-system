@@ -7,7 +7,13 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const vendorStore = useVendorStore()
+
+// Redirect read-only users (Accountant) - they cannot edit vendors
+if (!authStore.canWrite) {
+  router.replace(`/vendors/${route.params.id}`)
+}
 
 const vendorId = computed(() => Number(route.params.id))
 
