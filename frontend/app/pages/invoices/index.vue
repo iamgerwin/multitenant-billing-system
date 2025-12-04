@@ -5,12 +5,44 @@ definePageMeta({
   middleware: 'auth',
 })
 
+const route = useRoute()
 const invoiceStore = useInvoiceStore()
+const vendorStore = useVendorStore()
 const authStore = useAuthStore()
 
 const currentPage = ref(1)
 const selectedStatus = ref<InvoiceStatus | ''>('')
 const selectedSort = ref('-created_at')
+
+// Get vendor_id from route query
+const vendorId = computed(() => {
+  const id = route.query.vendor_id
+  return id ? Number(id) : null
+})
+
+// Fetch vendor info when vendor_id is present
+const vendor = computed(() => vendorStore.currentVendor)
+
+// Page title based on vendor filter
+const pageTitle = computed(() => {
+  if (vendor.value && vendorId.value) {
+    return `Invoices for ${vendor.value.name}`
+  }
+  return 'Invoices'
+})
+
+// Page description based on vendor filter
+const pageDescription = computed(() => {
+  if (vendor.value && vendorId.value) {
+    return `Manage and track invoices for ${vendor.value.name}`
+  }
+  return 'Manage and track all your invoices'
+})
+
+// Set page head title dynamically
+useHead({
+  title: computed(() => pageTitle.value),
+})
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -56,11 +88,14 @@ const stats = computed(() => ({
 }))
 
 const loadInvoices = async () => {
-  const filters: { status?: InvoiceStatus; sort?: string } = {
+  const filters: { status?: InvoiceStatus; sort?: string; vendor_id?: number } = {
     sort: selectedSort.value,
   }
   if (selectedStatus.value) {
     filters.status = selectedStatus.value
+  }
+  if (vendorId.value) {
+    filters.vendor_id = vendorId.value
   }
   invoiceStore.setFilters(filters)
   await invoiceStore.fetchInvoices(currentPage.value)
@@ -87,8 +122,19 @@ const handleDelete = async (id: number) => {
   }
 }
 
-onMounted(() => {
-  loadInvoices()
+onMounted(async () => {
+  // Fetch vendor info if vendor_id is in query params
+  if (vendorId.value) {
+    await vendorStore.fetchVendor(vendorId.value)
+  }
+  await loadInvoices()
+})
+
+onUnmounted(() => {
+  // Clear vendor if we were filtering by vendor_id
+  if (vendorId.value) {
+    vendorStore.clearCurrentVendor()
+  }
 })
 </script>
 
@@ -96,10 +142,32 @@ onMounted(() => {
   <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <UiHeader
-        title="Invoices"
-        description="Manage and track all your invoices"
-      />
+      <div>
+        <UiHeader
+          :title="pageTitle"
+          :description="pageDescription"
+          :back-link="vendorId ? `/vendors/${vendorId}` : undefined"
+          :back-label="vendorId ? 'Back to Vendor' : undefined"
+        />
+        <!-- Vendor filter indicator -->
+        <div v-if="vendor && vendorId" class="mt-2 flex items-center gap-2">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-violet-100 text-violet-800">
+            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            Filtered by: {{ vendor.name }}
+          </span>
+          <NuxtLink
+            to="/invoices"
+            class="inline-flex items-center px-2 py-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Clear filter
+          </NuxtLink>
+        </div>
+      </div>
       <NuxtLink
         v-if="authStore.canWrite"
         to="/invoices/create"

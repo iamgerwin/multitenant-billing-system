@@ -54,7 +54,11 @@ class VendorController extends Controller
      */
     public function show(Vendor $vendor): JsonResponse
     {
-        $vendor->loadCount('invoices');
+        $vendor->loadCount('invoices')
+            ->loadSum('invoices', 'total_amount')
+            ->loadCount(['invoices as pending_invoices_count' => function ($query) {
+                $query->where('status', 'pending');
+            }]);
 
         return response()->json([
             'data' => new VendorResource($vendor),

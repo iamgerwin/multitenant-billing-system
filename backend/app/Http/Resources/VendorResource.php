@@ -37,12 +37,12 @@ class VendorResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
             'invoices_count' => $this->whenCounted('invoices'),
             'total_invoice_amount' => $this->when(
-                $this->relationLoaded('invoices'),
-                fn () => $this->total_invoice_amount
+                isset($this->invoices_sum_total_amount),
+                fn () => (float) ($this->invoices_sum_total_amount ?? 0)
             ),
             'pending_invoices_count' => $this->when(
-                $this->relationLoaded('invoices'),
-                fn () => $this->pending_invoices_count
+                isset($this->pending_invoices_count),
+                fn () => (int) ($this->pending_invoices_count ?? 0)
             ),
         ];
     }

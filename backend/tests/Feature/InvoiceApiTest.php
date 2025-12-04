@@ -205,4 +205,36 @@ class InvoiceApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_user_can_filter_invoices_by_vendor_id(): void
+    {
+        // Create another vendor
+        $vendor2 = Vendor::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        // Create 3 invoices for the first vendor
+        Invoice::factory()->count(3)->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $this->vendor->id,
+        ]);
+
+        // Create 2 invoices for the second vendor
+        Invoice::factory()->count(2)->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $vendor2->id,
+        ]);
+
+        // Filter by vendor_id
+        $response = $this->actingAs($this->adminUser)
+            ->getJson("/api/invoices?vendor_id={$this->vendor->id}");
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data');
+
+        // Verify all returned invoices belong to the filtered vendor
+        foreach ($response->json('data') as $invoice) {
+            $this->assertEquals($this->vendor->id, $invoice['vendor_id']);
+        }
+    }
 }
