@@ -59,10 +59,10 @@ class StatsService
             ->selectRaw('SUM(CASE WHEN status = ? THEN total_amount ELSE 0 END) as paid_amount', [InvoiceStatus::Paid->value])
             ->first();
 
-        // Vendor stats
+        // Vendor stats - using parameter binding for database-agnostic boolean comparison
         $vendorStats = Vendor::query()
             ->selectRaw('COUNT(*) as total_count')
-            ->selectRaw('SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count')
+            ->selectRaw('SUM(CASE WHEN is_active = ? THEN 1 ELSE 0 END) as active_count', [true])
             ->first();
 
         return [
