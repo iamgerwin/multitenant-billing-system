@@ -7,8 +7,14 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const invoiceStore = useInvoiceStore()
 const vendorStore = useVendorStore()
+
+// Redirect read-only users (Accountant) - they cannot edit invoices
+if (!authStore.canWrite) {
+  router.replace(`/invoices/${route.params.id}`)
+}
 
 const invoiceId = computed(() => Number(route.params.id))
 

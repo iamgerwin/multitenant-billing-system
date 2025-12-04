@@ -6,7 +6,13 @@ definePageMeta({
 })
 
 const router = useRouter()
+const authStore = useAuthStore()
 const vendorStore = useVendorStore()
+
+// Redirect read-only users (Accountant) - they cannot create vendors
+if (!authStore.canWrite) {
+  router.replace('/vendors')
+}
 
 const form = reactive<VendorPayload>({
   name: '',

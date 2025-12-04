@@ -23,8 +23,6 @@ class InvoiceStatusTest extends TestCase
 
     protected User $accountant;
 
-    protected User $regularUser;
-
     protected Vendor $vendor;
 
     protected function setUp(): void
@@ -38,14 +36,10 @@ class InvoiceStatusTest extends TestCase
             'role' => UserRole::Admin,
         ]);
 
+        // Accountant is read-only, cannot perform write operations
         $this->accountant = User::factory()->create([
             'organization_id' => $this->organization->id,
             'role' => UserRole::Accountant,
-        ]);
-
-        $this->regularUser = User::factory()->create([
-            'organization_id' => $this->organization->id,
-            'role' => UserRole::User,
         ]);
 
         $this->vendor = Vendor::factory()->create([
@@ -224,7 +218,7 @@ class InvoiceStatusTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_accountant_can_reject_invoice(): void
+    public function test_accountant_cannot_reject_invoice(): void
     {
         $invoice = Invoice::factory()->create([
             'organization_id' => $this->organization->id,
@@ -232,17 +226,16 @@ class InvoiceStatusTest extends TestCase
             'status' => InvoiceStatus::Pending,
         ]);
 
-        // Accountants have write access, so they can reject invoices
+        // Accountants are read-only, so they cannot reject invoices
         $response = $this->actingAs($this->accountant)
             ->patchJson("/api/invoices/{$invoice->id}/status", [
                 'status' => InvoiceStatus::Rejected->value,
             ]);
 
-        $response->assertOk()
-            ->assertJsonPath('data.status', InvoiceStatus::Rejected->value);
+        $response->assertForbidden();
     }
 
-    public function test_accountant_can_mark_invoice_as_paid(): void
+    public function test_accountant_cannot_mark_invoice_as_paid(): void
     {
         $invoice = Invoice::factory()->create([
             'organization_id' => $this->organization->id,
@@ -250,18 +243,17 @@ class InvoiceStatusTest extends TestCase
             'status' => InvoiceStatus::Approved,
         ]);
 
-        // Accountants have write access, so they can mark invoices as paid
+        // Accountants are read-only, so they cannot mark invoices as paid
         $response = $this->actingAs($this->accountant)
             ->patchJson("/api/invoices/{$invoice->id}/status", [
                 'status' => InvoiceStatus::Paid->value,
                 'payment_method' => 'Bank Transfer',
             ]);
 
-        $response->assertOk()
-            ->assertJsonPath('data.status', InvoiceStatus::Paid->value);
+        $response->assertForbidden();
     }
 
-    public function test_regular_user_cannot_change_invoice_status(): void
+    public function test_accountant_cannot_change_invoice_status(): void
     {
         $invoice = Invoice::factory()->create([
             'organization_id' => $this->organization->id,
@@ -269,7 +261,8 @@ class InvoiceStatusTest extends TestCase
             'status' => InvoiceStatus::Pending,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        // Accountants are read-only
+        $response = $this->actingAs($this->accountant)
             ->patchJson("/api/invoices/{$invoice->id}/status", [
                 'status' => InvoiceStatus::Approved->value,
             ]);

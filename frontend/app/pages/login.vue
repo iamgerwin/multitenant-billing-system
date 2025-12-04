@@ -285,7 +285,7 @@ onMounted(() => {
                 <span class="w-2 h-2 bg-primary-500 rounded-full"></span>
                 Demo Company
               </p>
-              <div class="grid grid-cols-3 gap-2 text-xs">
+              <div class="grid grid-cols-2 gap-2 text-xs">
                 <div class="p-2 bg-gray-50 rounded-lg">
                   <p class="font-medium text-gray-700">Admin</p>
                   <p class="text-gray-500 mt-0.5 truncate">admin@demo.com</p>
@@ -293,10 +293,6 @@ onMounted(() => {
                 <div class="p-2 bg-gray-50 rounded-lg">
                   <p class="font-medium text-gray-700">Accountant</p>
                   <p class="text-gray-500 mt-0.5 truncate">accountant@demo.com</p>
-                </div>
-                <div class="p-2 bg-gray-50 rounded-lg">
-                  <p class="font-medium text-gray-700">User</p>
-                  <p class="text-gray-500 mt-0.5 truncate">user@demo.com</p>
                 </div>
               </div>
             </div>

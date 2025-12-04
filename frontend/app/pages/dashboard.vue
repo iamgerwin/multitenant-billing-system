@@ -170,6 +170,7 @@ onMounted(async () => {
 
           <div class="space-y-3">
             <NuxtLink
+              v-if="authStore.canWrite"
               to="/invoices/create"
               class="flex items-center p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group"
             >
@@ -188,6 +189,7 @@ onMounted(async () => {
             </NuxtLink>
 
             <NuxtLink
+              v-if="authStore.canWrite"
               to="/vendors/create"
               class="flex items-center p-4 rounded-lg border border-gray-200 hover:border-violet-300 hover:bg-violet-50 transition-all group"
             >
@@ -276,8 +278,10 @@ onMounted(async () => {
               </svg>
             </div>
             <h3 class="text-sm font-medium text-gray-900 mb-1">No invoices yet</h3>
-            <p class="text-sm text-gray-500 mb-4">Get started by creating your first invoice.</p>
+            <p v-if="authStore.canWrite" class="text-sm text-gray-500 mb-4">Get started by creating your first invoice.</p>
+            <p v-else class="text-sm text-gray-500 mb-4">No invoices have been created yet.</p>
             <NuxtLink
+              v-if="authStore.canWrite"
               to="/invoices/create"
               class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
             >

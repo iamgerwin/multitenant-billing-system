@@ -268,7 +268,7 @@ GET /api/vendors
 
 ### Create Vendor
 
-Create a new vendor. Requires write permission (Admin or Accountant).
+Create a new vendor. Requires Admin role (Accountant is read-only).
 
 ```
 POST /api/vendors
@@ -381,7 +381,7 @@ GET /api/vendors/{id}
 
 ### Update Vendor
 
-Update an existing vendor. Requires write permission.
+Update an existing vendor. Requires Admin role.
 
 ```
 PATCH /api/vendors/{id}
@@ -404,7 +404,7 @@ PATCH /api/vendors/{id}
 
 ### Delete Vendor
 
-Delete a vendor. Only allowed if vendor has no invoices. Requires write permission.
+Delete a vendor. Only allowed if vendor has no invoices. Requires Admin role.
 
 ```
 DELETE /api/vendors/{id}
@@ -503,7 +503,7 @@ GET /api/invoices
 
 ### Create Invoice
 
-Create a new invoice. Requires write permission. Status is automatically set to "pending".
+Create a new invoice. Requires Admin role. Status is automatically set to "pending".
 
 ```
 POST /api/invoices
@@ -646,7 +646,7 @@ GET /api/invoices/{id}
 
 ### Update Invoice
 
-Update an existing invoice. Only allowed for invoices with "pending" or "rejected" status. Requires write permission.
+Update an existing invoice. Only allowed for invoices with "pending" or "rejected" status. Requires Admin role.
 
 ```
 PATCH /api/invoices/{id}
@@ -689,9 +689,9 @@ PATCH /api/invoices/{id}/status
 
 | From     | To                    | Permission Required |
 |----------|-----------------------|---------------------|
-| pending  | approved, rejected    | Admin for approved, Write for rejected |
-| approved | paid, rejected        | Write               |
-| rejected | pending               | Write               |
+| pending  | approved, rejected    | Admin only          |
+| approved | paid, rejected        | Admin only          |
+| rejected | pending               | Admin only          |
 | paid     | (no transitions)      | N/A                 |
 
 **Example Request (Approve):**
@@ -736,7 +736,7 @@ PATCH /api/invoices/{id}/status
 
 ### Delete Invoice
 
-Delete an invoice. Only allowed for invoices with "pending" or "rejected" status. Requires write permission.
+Delete an invoice. Only allowed for invoices with "pending" or "rejected" status. Requires Admin role.
 
 ```
 DELETE /api/invoices/{id}

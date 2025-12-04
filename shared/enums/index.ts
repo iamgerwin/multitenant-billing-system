@@ -12,13 +12,11 @@
 export enum UserRole {
   Admin = 'admin',
   Accountant = 'accountant',
-  User = 'user',
 }
 
 export const UserRoleLabels: Record<UserRole, string> = {
   [UserRole.Admin]: 'Administrator',
   [UserRole.Accountant]: 'Accountant',
-  [UserRole.User]: 'User',
 }
 
 export const UserRolePermissions: Record<UserRole, {
@@ -32,11 +30,6 @@ export const UserRolePermissions: Record<UserRole, {
     canManageUsers: true,
   },
   [UserRole.Accountant]: {
-    canWrite: true,
-    canApprove: false,
-    canManageUsers: false,
-  },
-  [UserRole.User]: {
     canWrite: false,
     canApprove: false,
     canManageUsers: false,

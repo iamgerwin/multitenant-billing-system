@@ -6,8 +6,14 @@ definePageMeta({
 })
 
 const router = useRouter()
+const authStore = useAuthStore()
 const invoiceStore = useInvoiceStore()
 const vendorStore = useVendorStore()
+
+// Redirect read-only users (Accountant) - they cannot create invoices
+if (!authStore.canWrite) {
+  router.replace('/invoices')
+}
 
 const form = reactive<InvoiceCreatePayload>({
   vendor_id: 0,
