@@ -74,8 +74,8 @@ export const InvoiceStatusColors: Record<InvoiceStatus, string> = {
  */
 export const InvoiceStatusTransitions: Record<InvoiceStatus, InvoiceStatus[]> = {
   [InvoiceStatus.Pending]: [InvoiceStatus.Approved, InvoiceStatus.Rejected],
-  [InvoiceStatus.Approved]: [InvoiceStatus.Paid, InvoiceStatus.Rejected],
-  [InvoiceStatus.Rejected]: [InvoiceStatus.Pending],
+  [InvoiceStatus.Approved]: [InvoiceStatus.Paid],
+  [InvoiceStatus.Rejected]: [],
   [InvoiceStatus.Paid]: [],
 }
 
