@@ -207,7 +207,7 @@ class DashboardApiTest extends TestCase
             ->assertJsonPath('data.invoices.total_count', 10);
     }
 
-    public function test_stats_are_cached(): void
+    public function test_stats_cache_is_invalidated_on_invoice_create(): void
     {
         Invoice::factory()->create([
             'organization_id' => $this->organization->id,
@@ -225,26 +225,75 @@ class DashboardApiTest extends TestCase
         $response1->assertOk()
             ->assertJsonPath('data.invoices.total_count', 1);
 
-        $cachedAt1 = $response1->json('data.cached_at');
-
-        // Create another invoice
+        // Create another invoice - this should invalidate the cache via observer
         Invoice::factory()->create([
             'organization_id' => $this->organization->id,
             'vendor_id' => $this->vendor->id,
             'status' => InvoiceStatus::Pending,
         ]);
 
-        // Second request - should return cached data (still count = 1)
+        // Second request - should reflect new count (cache invalidated by observer)
         $response2 = $this->actingAs($this->adminUser)
             ->getJson('/api/dashboard/stats');
 
         $response2->assertOk()
-            ->assertJsonPath('data.invoices.total_count', 1);
+            ->assertJsonPath('data.invoices.total_count', 2);
+    }
 
-        $cachedAt2 = $response2->json('data.cached_at');
+    public function test_stats_cache_is_invalidated_on_invoice_update(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $this->vendor->id,
+            'status' => InvoiceStatus::Pending,
+            'total_amount' => 100,
+        ]);
 
-        // cached_at should be the same (cached response)
-        $this->assertEquals($cachedAt1, $cachedAt2);
+        // Clear cache
+        Cache::flush();
+
+        // First request - should populate cache
+        $response1 = $this->actingAs($this->adminUser)
+            ->getJson('/api/dashboard/stats');
+
+        $response1->assertOk();
+        $this->assertEquals(100, $response1->json('data.invoices.total_amount'));
+
+        // Update the invoice - this should invalidate the cache
+        $invoice->update(['total_amount' => 500]);
+
+        // Second request - should reflect updated amount
+        $response2 = $this->actingAs($this->adminUser)
+            ->getJson('/api/dashboard/stats');
+
+        $response2->assertOk();
+        $this->assertEquals(500, $response2->json('data.invoices.total_amount'));
+    }
+
+    public function test_stats_cache_is_invalidated_on_vendor_create(): void
+    {
+        // Clear cache
+        Cache::flush();
+
+        // First request - should populate cache (1 vendor from setUp)
+        $response1 = $this->actingAs($this->adminUser)
+            ->getJson('/api/dashboard/stats');
+
+        $response1->assertOk()
+            ->assertJsonPath('data.vendors.total_count', 1);
+
+        // Create another vendor - this should invalidate the cache via observer
+        Vendor::factory()->create([
+            'organization_id' => $this->organization->id,
+            'is_active' => true,
+        ]);
+
+        // Second request - should reflect new count
+        $response2 = $this->actingAs($this->adminUser)
+            ->getJson('/api/dashboard/stats');
+
+        $response2->assertOk()
+            ->assertJsonPath('data.vendors.total_count', 2);
     }
 
     public function test_unauthenticated_user_cannot_access_stats(): void
