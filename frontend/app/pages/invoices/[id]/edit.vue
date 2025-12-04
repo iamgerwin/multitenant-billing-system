@@ -35,6 +35,11 @@ const errors = reactive<Record<string, string[]>>({})
 const isSubmitting = ref(false)
 const isLoading = ref(true)
 
+// Dynamic page title based on invoice number
+useHead({
+  title: computed(() => form.invoice_number ? `Edit ${form.invoice_number}` : 'Edit Invoice'),
+})
+
 const totalAmount = computed(() => {
   return (form.subtotal || 0) + (form.tax_amount || 0) - (form.discount_amount || 0)
 })
