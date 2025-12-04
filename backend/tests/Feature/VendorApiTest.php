@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\UserRole;
+use App\Models\Invoice;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\Vendor;
@@ -142,5 +144,49 @@ class VendorApiTest extends TestCase
             ->postJson('/api/vendors', $vendorData);
 
         $response->assertForbidden();
+    }
+
+    public function test_vendor_show_includes_invoice_summary(): void
+    {
+        $vendor = Vendor::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        // Create 4 invoices for this vendor: 2 pending, 1 approved, 1 paid
+        Invoice::factory()->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $vendor->id,
+            'status' => InvoiceStatus::Pending,
+            'total_amount' => 100.00,
+        ]);
+        Invoice::factory()->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $vendor->id,
+            'status' => InvoiceStatus::Pending,
+            'total_amount' => 200.00,
+        ]);
+        Invoice::factory()->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $vendor->id,
+            'status' => InvoiceStatus::Approved,
+            'total_amount' => 300.00,
+        ]);
+        Invoice::factory()->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $vendor->id,
+            'status' => InvoiceStatus::Paid,
+            'total_amount' => 400.00,
+        ]);
+
+        $response = $this->actingAs($this->adminUser)
+            ->getJson("/api/vendors/{$vendor->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $vendor->id)
+            ->assertJsonPath('data.invoices_count', 4)
+            ->assertJsonPath('data.pending_invoices_count', 2);
+
+        // Check total invoice amount using loose comparison (handles int/float difference)
+        $this->assertEquals(1000.00, $response->json('data.total_invoice_amount'));
     }
 }

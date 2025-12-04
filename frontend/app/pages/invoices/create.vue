@@ -5,6 +5,10 @@ definePageMeta({
   middleware: 'auth',
 })
 
+useHead({
+  title: 'Create Invoice',
+})
+
 const router = useRouter()
 const authStore = useAuthStore()
 const invoiceStore = useInvoiceStore()

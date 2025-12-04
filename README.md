@@ -53,7 +53,14 @@ multitenant-billing-system/
    make fresh
    ```
 
-5. Access the application:
+5. (Optional) Import sample database dump:
+   ```bash
+   # Extract and import the sample database
+   unzip docs/billing_system.sql.zip -d docs/
+   docker compose exec -T billing_mysql mysql -uroot -proot billing < docs/billing_system.sql
+   ```
+
+6. Access the application:
    - Frontend: http://localhost:3333
    - Backend API: http://localhost:8888
 
@@ -113,6 +120,7 @@ import {
 - [API Reference](docs/API.md) - Endpoint documentation
 - [ERD](docs/ERD.md) - Database schema and relationships
 - [Testing](docs/TEST.md) - Testing infrastructure and guidelines
+- [Sample Database](docs/billing_system.sql.zip) - Database dump with sample data (100+ invoices, vendors)
 
 ## Features
 

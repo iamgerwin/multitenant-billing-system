@@ -11,6 +11,22 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
   ],
 
+  app: {
+    head: {
+      title: 'Billing System',
+      titleTemplate: '%s | Billing System',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Multi-tenant billing and invoice management system' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      ],
+    },
+  },
+
   runtimeConfig: {
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api',

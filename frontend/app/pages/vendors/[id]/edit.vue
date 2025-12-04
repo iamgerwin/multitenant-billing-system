@@ -37,6 +37,11 @@ const errors = reactive<Record<string, string[]>>({})
 const isSubmitting = ref(false)
 const isLoading = ref(true)
 
+// Dynamic page title based on vendor name
+useHead({
+  title: computed(() => form.name ? `Edit ${form.name}` : 'Edit Vendor'),
+})
+
 const handleSubmit = async () => {
   isSubmitting.value = true
   Object.keys(errors).forEach((key) => delete errors[key])

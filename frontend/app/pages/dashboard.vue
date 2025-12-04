@@ -3,20 +3,24 @@ definePageMeta({
   middleware: 'auth',
 })
 
+useHead({
+  title: 'Dashboard',
+})
+
 const authStore = useAuthStore()
 const invoiceStore = useInvoiceStore()
-const vendorStore = useVendorStore()
+const statsStore = useStatsStore()
 
 const isLoading = ref(true)
 
-const stats = ref({
-  totalInvoices: 0,
-  pendingInvoices: 0,
-  approvedInvoices: 0,
-  totalVendors: 0,
-  totalAmount: 0,
-  paidAmount: 0,
-})
+const stats = computed(() => ({
+  totalInvoices: statsStore.totalInvoiceCount,
+  pendingInvoices: statsStore.pendingInvoiceCount,
+  approvedInvoices: statsStore.approvedInvoiceCount,
+  totalVendors: statsStore.totalVendorCount,
+  totalAmount: statsStore.totalInvoiceAmount,
+  paidAmount: statsStore.paidInvoiceAmount,
+}))
 
 const recentInvoices = computed(() => invoiceStore.invoices.slice(0, 5))
 
@@ -39,21 +43,9 @@ const getStatusClasses = (status: string): string => {
 
 onMounted(async () => {
   await Promise.all([
+    statsStore.fetchStats(),
     invoiceStore.fetchInvoices(1, 10),
-    vendorStore.fetchVendors(1, 100),
   ])
-
-  const paidInvoices = invoiceStore.invoices.filter((i) => i.status === 'paid')
-  const paidAmount = paidInvoices.reduce((sum, i) => sum + i.total_amount, 0)
-
-  stats.value = {
-    totalInvoices: invoiceStore.pagination.total,
-    pendingInvoices: invoiceStore.pendingInvoices.length,
-    approvedInvoices: invoiceStore.invoices.filter((i) => i.status === 'approved').length,
-    totalVendors: vendorStore.pagination.total,
-    totalAmount: invoiceStore.totalAmount,
-    paidAmount,
-  }
 
   isLoading.value = false
 })

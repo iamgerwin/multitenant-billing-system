@@ -11,6 +11,11 @@ const authStore = useAuthStore()
 const vendorId = computed(() => Number(route.params.id))
 const vendor = computed(() => vendorStore.currentVendor)
 
+// Dynamic page title based on vendor name
+useHead({
+  title: computed(() => vendor.value?.name || 'Vendor Details'),
+})
+
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
