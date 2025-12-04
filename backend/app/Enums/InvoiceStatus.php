@@ -44,8 +44,8 @@ enum InvoiceStatus: string
     {
         return match ($this) {
             self::Pending => [self::Approved, self::Rejected],
-            self::Approved => [self::Paid, self::Rejected],
-            self::Rejected => [self::Pending],
+            self::Approved => [self::Paid],
+            self::Rejected => [],
             self::Paid => [],
         };
     }

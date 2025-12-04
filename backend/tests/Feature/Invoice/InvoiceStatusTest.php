@@ -118,7 +118,7 @@ class InvoiceStatusTest extends TestCase
             ->assertJsonPath('data.payment_reference', 'TXN-123456');
     }
 
-    public function test_admin_can_reopen_rejected_invoice(): void
+    public function test_cannot_transition_rejected_invoice(): void
     {
         $invoice = Invoice::factory()->create([
             'organization_id' => $this->organization->id,
@@ -126,13 +126,13 @@ class InvoiceStatusTest extends TestCase
             'status' => InvoiceStatus::Rejected,
         ]);
 
+        // Rejected is an end state - cannot transition to any other status
         $response = $this->actingAs($this->admin)
             ->patchJson("/api/invoices/{$invoice->id}/status", [
                 'status' => InvoiceStatus::Pending->value,
             ]);
 
-        $response->assertOk()
-            ->assertJsonPath('data.status', InvoiceStatus::Pending->value);
+        $response->assertUnprocessable();
     }
 
     // =========================================================================
@@ -182,6 +182,23 @@ class InvoiceStatusTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->patchJson("/api/invoices/{$invoice->id}/status", [
                 'status' => InvoiceStatus::Approved->value,
+            ]);
+
+        $response->assertUnprocessable();
+    }
+
+    public function test_cannot_reject_approved_invoice(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $this->vendor->id,
+            'status' => InvoiceStatus::Approved,
+        ]);
+
+        // Approved can only transition to Paid, not Rejected
+        $response = $this->actingAs($this->admin)
+            ->patchJson("/api/invoices/{$invoice->id}/status", [
+                'status' => InvoiceStatus::Rejected->value,
             ]);
 
         $response->assertUnprocessable();
