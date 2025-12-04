@@ -29,7 +29,7 @@ class StoreVendorRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'code' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 Rule::unique('vendors', 'code')
@@ -59,7 +59,6 @@ class StoreVendorRequest extends FormRequest
     {
         return [
             'name.required' => 'The vendor name is required.',
-            'code.required' => 'The vendor code is required.',
             'code.unique' => 'A vendor with this code already exists in your organization.',
             'email.email' => 'Please provide a valid email address.',
             'payment_terms.integer' => 'Payment terms must be a number of days.',
