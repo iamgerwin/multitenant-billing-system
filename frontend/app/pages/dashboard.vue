@@ -3,6 +3,10 @@ definePageMeta({
   middleware: 'auth',
 })
 
+useHead({
+  title: 'Dashboard',
+})
+
 const authStore = useAuthStore()
 const invoiceStore = useInvoiceStore()
 const vendorStore = useVendorStore()

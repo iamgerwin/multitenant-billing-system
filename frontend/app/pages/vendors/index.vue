@@ -3,6 +3,10 @@ definePageMeta({
   middleware: 'auth',
 })
 
+useHead({
+  title: 'Vendors',
+})
+
 const vendorStore = useVendorStore()
 const authStore = useAuthStore()
 
