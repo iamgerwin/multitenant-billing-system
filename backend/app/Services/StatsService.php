@@ -93,11 +93,12 @@ class StatsService
     private function computeStats(int $organizationId): array
     {
         // Invoice stats - using aggregation queries for efficiency
-        // Explicitly filter by organization_id to ensure multi-tenant isolation
-        $invoiceStats = Invoice::withoutGlobalScopes()
-            ->where('organization_id', $organizationId)
+        // Using forOrganization() scope to bypass OrganizationScope while respecting SoftDeletes
+        // This ensures deleted invoices are excluded from stats
+        // total_amount excludes rejected invoices as they should not count towards the total value
+        $invoiceStats = Invoice::forOrganization($organizationId)
             ->selectRaw('COUNT(*) as total_count')
-            ->selectRaw('SUM(total_amount) as total_amount')
+            ->selectRaw('SUM(CASE WHEN status != ? THEN total_amount ELSE 0 END) as total_amount', [InvoiceStatus::Rejected->value])
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending_count', [InvoiceStatus::Pending->value])
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved_count', [InvoiceStatus::Approved->value])
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as paid_count', [InvoiceStatus::Paid->value])
@@ -106,9 +107,8 @@ class StatsService
             ->first();
 
         // Vendor stats - using parameter binding for database-agnostic boolean comparison
-        // Explicitly filter by organization_id to ensure multi-tenant isolation
-        $vendorStats = Vendor::withoutGlobalScopes()
-            ->where('organization_id', $organizationId)
+        // Using forOrganization() scope to bypass OrganizationScope while respecting SoftDeletes
+        $vendorStats = Vendor::forOrganization($organizationId)
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw('SUM(CASE WHEN is_active = ? THEN 1 ELSE 0 END) as active_count', [true])
             ->first();
