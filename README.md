@@ -67,12 +67,16 @@ After running seeders:
 ## Available Commands
 
 ```bash
-make up      # Start all services
-make down    # Stop all services
-make build   # Rebuild containers
-make logs    # View container logs
-make fresh   # Reset database with seeders
-make test    # Run backend tests
+make up              # Start all services
+make down            # Stop all services
+make build           # Rebuild containers
+make logs            # View container logs
+make fresh           # Reset database with seeders
+make test            # Run backend tests (Docker)
+make test-local      # Run backend tests locally
+make test-coverage   # Run tests with coverage report
+make test-unit       # Run unit tests only
+make test-feature    # Run feature tests only
 ```
 
 ## Using the Shared Package
@@ -108,6 +112,7 @@ import {
 - [Architecture](docs/ARCHITECTURE.md) - System design and patterns
 - [API Reference](docs/API.md) - Endpoint documentation
 - [ERD](docs/ERD.md) - Database schema and relationships
+- [Testing](docs/TEST.md) - Testing infrastructure and guidelines
 
 ## Features
 

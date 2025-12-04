@@ -228,6 +228,7 @@ class TenantIsolationTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/api/vendors', [
                 'name' => 'New Vendor',
+                'code' => 'VND-NEW-TEST',
                 'email' => 'newvendor@example.com',
             ]);
 

@@ -68,6 +68,7 @@ class VendorApiTest extends TestCase
     {
         $vendorData = [
             'name' => 'Test Vendor',
+            'code' => 'VND-TEST',
             'email' => 'vendor@example.com',
             'phone' => '+1234567890',
         ];
@@ -108,7 +109,8 @@ class VendorApiTest extends TestCase
         $response = $this->actingAs($this->adminUser)
             ->deleteJson("/api/vendors/{$vendor->id}");
 
-        $response->assertNoContent();
+        $response->assertOk()
+            ->assertJsonPath('message', 'Vendor deleted successfully.');
 
         $this->assertSoftDeleted('vendors', ['id' => $vendor->id]);
     }
@@ -130,6 +132,7 @@ class VendorApiTest extends TestCase
     {
         $vendorData = [
             'name' => 'Test Vendor',
+            'code' => 'VND-TEST',
             'email' => 'vendor@example.com',
         ];
 

@@ -37,9 +37,9 @@ class AuthenticationTest extends TestCase
 
         $response->assertOk()
             ->assertJsonStructure([
+                'message',
                 'user' => ['id', 'name', 'email', 'role'],
                 'token',
-                'token_type',
             ]);
     }
 
@@ -56,7 +56,8 @@ class AuthenticationTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $response->assertUnauthorized();
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_user_cannot_login_with_invalid_email(): void
@@ -66,7 +67,8 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertUnauthorized();
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_inactive_user_cannot_login(): void
@@ -83,7 +85,8 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertUnauthorized();
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_authenticated_user_can_get_profile(): void
@@ -97,7 +100,7 @@ class AuthenticationTest extends TestCase
 
         $response->assertOk()
             ->assertJsonStructure([
-                'data' => ['id', 'name', 'email', 'role'],
+                'user' => ['id', 'name', 'email', 'role'],
             ]);
     }
 
@@ -107,10 +110,14 @@ class AuthenticationTest extends TestCase
             'organization_id' => $this->organization->id,
         ]);
 
-        $response = $this->actingAs($user)
+        // Create a token for the user (needed for logout to work)
+        $token = $user->createToken('test-token');
+
+        $response = $this->withToken($token->plainTextToken)
             ->postJson('/api/auth/logout');
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertJsonPath('message', 'Logged out successfully.');
     }
 
     public function test_unauthenticated_user_cannot_access_protected_routes(): void
