@@ -42,8 +42,10 @@ const getStatusClasses = (status: string): string => {
 }
 
 onMounted(async () => {
+  // Force fetch stats to ensure tenant isolation - never use cached stats
+  // as they may belong to a different organization
   await Promise.all([
-    statsStore.fetchStats(),
+    statsStore.fetchStats(true),
     invoiceStore.fetchInvoices(1, 10),
   ])
 

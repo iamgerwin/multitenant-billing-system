@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { useInvoiceStore } from './invoice'
 import { useVendorStore } from './vendor'
+import { useStatsStore } from './stats'
 import {
   UserRole,
   UserRolePermissions,
@@ -102,11 +103,15 @@ export const useAuthStore = defineStore('auth', {
 
     clearAllStores() {
       // Reset all stores to their initial state on logout
+      // Critical: This ensures tenant isolation - stats from one org
+      // are never visible to users from another org
       const invoiceStore = useInvoiceStore()
       const vendorStore = useVendorStore()
+      const statsStore = useStatsStore()
 
       invoiceStore.$reset()
       vendorStore.$reset()
+      statsStore.$reset()
     },
 
     clearAuth() {
