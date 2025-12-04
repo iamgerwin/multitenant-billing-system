@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const isAppReady = ref(false)
+// Use useState for SSR-safe state to prevent hydration mismatch
+const isAppReady = useState('app-ready', () => false)
 
 onMounted(() => {
   // Small delay to ensure CSS is fully loaded and applied
@@ -10,29 +11,29 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <!-- Loading overlay - shows until app is ready -->
-    <Transition name="fade">
-      <div
-        v-if="!isAppReady"
-        class="loading-overlay"
-      >
-        <div class="loading-spinner">
-          <svg class="loading-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle class="loading-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
-          </svg>
-          <span class="loading-text">Loading...</span>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Loading overlay - client only to prevent hydration mismatch -->
+    <ClientOnly>
+      <Transition name="fade">
+        <div
+          v-if="!isAppReady"
+          class="loading-overlay"
+        >
+          <div class="loading-spinner">
+            <svg class="loading-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle class="loading-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
+            </svg>
+            <span class="loading-text">Loading...</span>
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </ClientOnly>
 
     <!-- Main app content -->
-    <div :class="{ 'app-hidden': !isAppReady }" class="min-h-screen bg-gray-50">
-      <NuxtRouteAnnouncer />
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
-    </div>
+    <NuxtRouteAnnouncer />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>
 
@@ -72,11 +73,6 @@ onMounted(() => {
   font-size: 0.875rem;
   font-weight: 500;
   color: #6b7280;
-}
-
-.app-hidden {
-  visibility: hidden;
-  opacity: 0;
 }
 
 /* Fade transition for loading overlay */
