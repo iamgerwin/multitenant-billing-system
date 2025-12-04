@@ -14,6 +14,11 @@ const authStore = useAuthStore()
 const invoiceId = computed(() => Number(route.params.id))
 const invoice = computed(() => invoiceStore.currentInvoice)
 
+// Dynamic page title based on invoice number
+useHead({
+  title: computed(() => invoice.value?.invoice_number || 'Invoice Details'),
+})
+
 const showPaymentModal = ref(false)
 const paymentForm = reactive({
   payment_method: '',
