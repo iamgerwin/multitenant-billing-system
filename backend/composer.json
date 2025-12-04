@@ -48,7 +48,19 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "DB_DATABASE=:memory: @php artisan test"
+        ],
+        "test:coverage": [
+            "@php artisan config:clear --ansi",
+            "XDEBUG_MODE=coverage DB_DATABASE=:memory: ./vendor/bin/phpunit --coverage-html coverage-report"
+        ],
+        "test:unit": [
+            "@php artisan config:clear --ansi",
+            "DB_DATABASE=:memory: @php artisan test --testsuite=Unit"
+        ],
+        "test:feature": [
+            "@php artisan config:clear --ansi",
+            "DB_DATABASE=:memory: @php artisan test --testsuite=Feature"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
