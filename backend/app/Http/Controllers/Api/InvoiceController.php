@@ -58,7 +58,20 @@ class InvoiceController extends Controller
             $query->where('vendor_id', $request->integer('vendor_id'));
         }
 
-        $invoices = $query->latest()->paginate($request->integer('per_page', 15));
+        // Apply sorting (default: -created_at for newest first)
+        $sort = $request->input('sort', '-created_at');
+        $sortDirection = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $sortField = ltrim($sort, '-');
+
+        // Whitelist sortable fields for security
+        $allowedSorts = ['created_at', 'updated_at', 'invoice_date', 'due_date', 'total_amount', 'invoice_number'];
+        if (in_array($sortField, $allowedSorts, true)) {
+            $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->latest(); // Default fallback
+        }
+
+        $invoices = $query->paginate($request->integer('per_page', 15));
 
         return InvoiceResource::collection($invoices);
     }

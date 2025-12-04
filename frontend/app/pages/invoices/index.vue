@@ -10,6 +10,7 @@ const authStore = useAuthStore()
 
 const currentPage = ref(1)
 const selectedStatus = ref<InvoiceStatus | ''>('')
+const selectedSort = ref('-created_at')
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -17,6 +18,17 @@ const statusOptions = [
     value: value as InvoiceStatus,
     label,
   })),
+]
+
+const sortOptions = [
+  { value: '-created_at', label: 'Newest First' },
+  { value: 'created_at', label: 'Oldest First' },
+  { value: '-total_amount', label: 'Highest Amount' },
+  { value: 'total_amount', label: 'Lowest Amount' },
+  { value: '-due_date', label: 'Due Date (Latest)' },
+  { value: 'due_date', label: 'Due Date (Earliest)' },
+  { value: 'invoice_number', label: 'Invoice # (A-Z)' },
+  { value: '-invoice_number', label: 'Invoice # (Z-A)' },
 ]
 
 const formatCurrency = (amount: number): string => {
@@ -44,11 +56,13 @@ const stats = computed(() => ({
 }))
 
 const loadInvoices = async () => {
-  if (selectedStatus.value) {
-    invoiceStore.setFilters({ status: selectedStatus.value })
-  } else {
-    invoiceStore.clearFilters()
+  const filters: { status?: InvoiceStatus; sort?: string } = {
+    sort: selectedSort.value,
   }
+  if (selectedStatus.value) {
+    filters.status = selectedStatus.value
+  }
+  invoiceStore.setFilters(filters)
   await invoiceStore.fetchInvoices(currentPage.value)
 }
 
@@ -58,6 +72,11 @@ const handlePageChange = (page: number) => {
 }
 
 const handleStatusFilter = () => {
+  currentPage.value = 1
+  loadInvoices()
+}
+
+const handleSortChange = () => {
   currentPage.value = 1
   loadInvoices()
 }
@@ -181,6 +200,24 @@ onMounted(() => {
               @change="handleStatusFilter"
             >
               <option v-for="option in statusOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            <span class="text-sm font-medium text-gray-700">Sort by:</span>
+          </div>
+          <div class="flex-1 max-w-xs">
+            <select
+              id="sort"
+              v-model="selectedSort"
+              class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white shadow-sm text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              @change="handleSortChange"
+            >
+              <option v-for="option in sortOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
             </select>
