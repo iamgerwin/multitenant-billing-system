@@ -146,4 +146,93 @@ class StatsServiceTest extends TestCase
         $this->assertEquals(0, $stats['vendors']['total_count']);
         $this->assertEquals(0, $stats['vendors']['active_count']);
     }
+
+    public function test_stats_are_isolated_per_organization(): void
+    {
+        // Create invoices for our organization
+        Invoice::factory()->count(3)->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $this->vendor->id,
+            'status' => InvoiceStatus::Pending,
+            'total_amount' => 100,
+        ]);
+
+        // Create another organization with different data
+        $otherOrg = Organization::factory()->create();
+        $otherVendor = Vendor::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'is_active' => true,
+        ]);
+        Invoice::factory()->count(7)->create([
+            'organization_id' => $otherOrg->id,
+            'vendor_id' => $otherVendor->id,
+            'status' => InvoiceStatus::Paid,
+            'total_amount' => 500,
+        ]);
+
+        Cache::flush();
+
+        // Get stats for first organization
+        $stats1 = $this->statsService->getDashboardStats($this->organization->id);
+
+        // Get stats for second organization
+        $stats2 = $this->statsService->getDashboardStats($otherOrg->id);
+
+        // First organization should see 3 pending invoices, total 300
+        $this->assertEquals(3, $stats1['invoices']['total_count']);
+        $this->assertEquals(300, $stats1['invoices']['total_amount']);
+        $this->assertEquals(3, $stats1['invoices']['pending_count']);
+        $this->assertEquals(0, $stats1['invoices']['paid_count']);
+        $this->assertEquals(1, $stats1['vendors']['total_count']);
+
+        // Second organization should see 7 paid invoices, total 3500
+        $this->assertEquals(7, $stats2['invoices']['total_count']);
+        $this->assertEquals(3500, $stats2['invoices']['total_amount']);
+        $this->assertEquals(0, $stats2['invoices']['pending_count']);
+        $this->assertEquals(7, $stats2['invoices']['paid_count']);
+        $this->assertEquals(1, $stats2['vendors']['total_count']);
+    }
+
+    public function test_stats_isolation_works_without_auth_context(): void
+    {
+        // Create invoices for our organization
+        Invoice::factory()->count(2)->create([
+            'organization_id' => $this->organization->id,
+            'vendor_id' => $this->vendor->id,
+            'status' => InvoiceStatus::Pending,
+            'total_amount' => 100,
+        ]);
+
+        // Create another organization with different data
+        $otherOrg = Organization::factory()->create();
+        $otherVendor = Vendor::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'is_active' => true,
+        ]);
+        Invoice::factory()->count(5)->create([
+            'organization_id' => $otherOrg->id,
+            'vendor_id' => $otherVendor->id,
+            'status' => InvoiceStatus::Paid,
+            'total_amount' => 200,
+        ]);
+
+        // Logout to remove auth context
+        Auth::logout();
+
+        Cache::flush();
+
+        // Stats should still be properly scoped even without auth context
+        $stats1 = $this->statsService->getDashboardStats($this->organization->id);
+        $stats2 = $this->statsService->getDashboardStats($otherOrg->id);
+
+        // First organization should see only its 2 invoices
+        $this->assertEquals(2, $stats1['invoices']['total_count']);
+        $this->assertEquals(200, $stats1['invoices']['total_amount']);
+        $this->assertEquals(1, $stats1['vendors']['total_count']);
+
+        // Second organization should see only its 5 invoices
+        $this->assertEquals(5, $stats2['invoices']['total_count']);
+        $this->assertEquals(1000, $stats2['invoices']['total_amount']);
+        $this->assertEquals(1, $stats2['vendors']['total_count']);
+    }
 }

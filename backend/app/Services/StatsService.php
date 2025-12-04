@@ -26,8 +26,8 @@ class StatsService
     {
         $cacheKey = "org_{$organizationId}_dashboard_stats";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () {
-            return $this->computeStats();
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($organizationId) {
+            return $this->computeStats($organizationId);
         });
     }
 
@@ -44,12 +44,15 @@ class StatsService
     /**
      * Compute stats from database.
      *
+     * @param int $organizationId
      * @return array<string, mixed>
      */
-    private function computeStats(): array
+    private function computeStats(int $organizationId): array
     {
         // Invoice stats - using aggregation queries for efficiency
-        $invoiceStats = Invoice::query()
+        // Explicitly filter by organization_id to ensure multi-tenant isolation
+        $invoiceStats = Invoice::withoutGlobalScopes()
+            ->where('organization_id', $organizationId)
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw('SUM(total_amount) as total_amount')
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending_count', [InvoiceStatus::Pending->value])
@@ -60,7 +63,9 @@ class StatsService
             ->first();
 
         // Vendor stats - using parameter binding for database-agnostic boolean comparison
-        $vendorStats = Vendor::query()
+        // Explicitly filter by organization_id to ensure multi-tenant isolation
+        $vendorStats = Vendor::withoutGlobalScopes()
+            ->where('organization_id', $organizationId)
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw('SUM(CASE WHEN is_active = ? THEN 1 ELSE 0 END) as active_count', [true])
             ->first();
