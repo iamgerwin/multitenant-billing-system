@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\Repositories\InvoiceRepositoryInterface;
+use App\Contracts\Repositories\OrganizationRepositoryInterface;
 use App\Contracts\Repositories\VendorRepositoryInterface;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\OrganizationRepository;
 use App\Repositories\VendorRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,7 @@ class RepositoryServiceProvider extends ServiceProvider
     protected array $repositories = [
         VendorRepositoryInterface::class => VendorRepository::class,
         InvoiceRepositoryInterface::class => InvoiceRepository::class,
+        OrganizationRepositoryInterface::class => OrganizationRepository::class,
     ];
 
     /**
