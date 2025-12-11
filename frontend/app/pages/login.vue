@@ -138,7 +138,7 @@ onMounted(() => {
       <!-- Footer -->
       <div class="relative z-10">
         <p class="text-primary-200 text-sm">
-          Secure and reliable billing management
+          Crafted by: <a href="https://github.com/iamgerwin" target="_blank" rel="noopener noreferrer" class="underline hover:text-white transition-colors">John Gerwin De las Alas</a>
         </p>
       </div>
     </div>
