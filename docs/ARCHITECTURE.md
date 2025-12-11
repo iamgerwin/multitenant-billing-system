@@ -46,43 +46,80 @@ multitenant-billing-system/
 ```
 backend/
 ├── app/
+│   ├── Contracts/
+│   │   └── Repositories/   # Repository interfaces
 │   ├── Enums/              # PHP Enums (UserRole, InvoiceStatus)
 │   ├── Http/
-│   │   ├── Controllers/    # API Controllers
+│   │   ├── Controllers/    # API Controllers (thin, HTTP concerns only)
 │   │   ├── Middleware/     # Tenant middleware
-│   │   └── Requests/       # Form Request validation
+│   │   ├── Requests/       # Form Request validation
+│   │   └── Resources/      # API Resources (JSON transformers)
 │   ├── Models/             # Eloquent models
 │   │   ├── Concerns/       # Model traits
 │   │   └── Scopes/         # Query scopes
 │   ├── Providers/          # Service providers
-│   └── Repositories/       # Repository pattern implementation
+│   ├── Repositories/       # Repository implementations
+│   └── Services/           # Business logic services
 ├── database/
 │   ├── migrations/         # Database migrations
 │   └── seeders/            # Database seeders
 ├── routes/
 │   └── api.php             # API routes
-└── tests/                  # Feature & Unit tests
+└── tests/
+    ├── Feature/            # Feature/Integration tests
+    └── Unit/
+        ├── Repositories/   # Repository unit tests
+        └── Services/       # Service unit tests
 ```
 
 ### Design Patterns
 
-#### Repository Pattern
+#### Service-Repository Pattern
+
+The application uses a layered architecture with Services and Repositories:
 
 ```
-┌──────────────┐    ┌─────────────────────┐    ┌───────────┐
-│  Controller  │───▶│ RepositoryInterface │───▶│  Eloquent │
-└──────────────┘    └─────────────────────┘    │   Model   │
-                              │                └───────────┘
-                              ▼
-                    ┌─────────────────────┐
-                    │     Repository      │
-                    │  (Implementation)   │
-                    └─────────────────────┘
+┌──────────────┐    ┌─────────────┐    ┌─────────────────────┐    ┌───────────┐
+│  Controller  │───▶│   Service   │───▶│ RepositoryInterface │───▶│  Eloquent │
+│  (HTTP)      │    │  (Business) │    └─────────────────────┘    │   Model   │
+└──────────────┘    └─────────────┘              │                └───────────┘
+                                                 ▼
+                                       ┌─────────────────────┐
+                                       │     Repository      │
+                                       │  (Implementation)   │
+                                       └─────────────────────┘
 ```
 
-- Controllers depend on interfaces, not concrete implementations
-- Repositories are bound in `AppServiceProvider`
-- Enables easy testing and swapping implementations
+**Layer Responsibilities:**
+
+| Layer | Responsibility | Examples |
+|-------|----------------|----------|
+| Controller | HTTP concerns, request/response handling, validation | `InvoiceController`, `VendorController` |
+| Service | Business logic orchestration, calculations, workflows | `InvoiceService`, `VendorService` |
+| Repository | Data access, queries, filtering | `InvoiceRepository`, `VendorRepository` |
+| Model | Entity definition, relationships, scopes | `Invoice`, `Vendor` |
+
+**Available Services:**
+- `InvoiceService` - Invoice CRUD, total calculations, status transitions
+- `VendorService` - Vendor CRUD, deletion validation
+- `OrganizationService` - Organization data with relationship counts
+- `InvoiceNumberGenerator` - Unique invoice number generation
+- `StatsService` - Dashboard statistics with caching
+
+**Available Repositories:**
+- `InvoiceRepository` - Invoice queries with filtering, sorting, pagination
+- `VendorRepository` - Vendor queries with statistics
+- `OrganizationRepository` - Organization queries with counts
+
+**Bindings:**
+- Services: Auto-resolved via constructor injection
+- Repositories: Bound in `RepositoryServiceProvider` (interface → implementation)
+
+**Benefits:**
+- Controllers remain thin (HTTP concerns only)
+- Business logic is testable in isolation
+- Data access is abstracted and mockable
+- Easy to swap implementations for testing
 
 #### Multi-tenancy
 
