@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Contracts\Repositories\VendorRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Vendor\StoreVendorRequest;
 use App\Http\Requests\Vendor\UpdateVendorRequest;
 use App\Http\Resources\VendorResource;
 use App\Models\Vendor;
+use App\Services\VendorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 class VendorController extends Controller
 {
     public function __construct(
-        private VendorRepositoryInterface $vendorRepository
+        private VendorService $vendorService
     ) {}
 
     /**
@@ -26,7 +26,7 @@ class VendorController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $vendors = $this->vendorRepository->paginate(
+        $vendors = $this->vendorService->list(
             $request->integer('per_page', 15)
         );
 
@@ -38,10 +38,10 @@ class VendorController extends Controller
      */
     public function store(StoreVendorRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $data['organization_id'] = $request->user()->organization_id;
-
-        $vendor = $this->vendorRepository->create($data);
+        $vendor = $this->vendorService->create(
+            $request->validated(),
+            $request->user()->organization_id
+        );
 
         return response()->json([
             'message' => 'Vendor created successfully.',
@@ -54,11 +54,7 @@ class VendorController extends Controller
      */
     public function show(Vendor $vendor): JsonResponse
     {
-        $vendor->loadCount('invoices')
-            ->loadSum('invoices', 'total_amount')
-            ->loadCount(['invoices as pending_invoices_count' => function ($query) {
-                $query->where('status', 'pending');
-            }]);
+        $vendor = $this->vendorService->show($vendor);
 
         return response()->json([
             'data' => new VendorResource($vendor),
@@ -70,11 +66,11 @@ class VendorController extends Controller
      */
     public function update(UpdateVendorRequest $request, Vendor $vendor): JsonResponse
     {
-        $this->vendorRepository->update($vendor, $request->validated());
+        $vendor = $this->vendorService->update($vendor, $request->validated());
 
         return response()->json([
             'message' => 'Vendor updated successfully.',
-            'data' => new VendorResource($vendor->fresh()),
+            'data' => new VendorResource($vendor),
         ]);
     }
 
@@ -83,17 +79,16 @@ class VendorController extends Controller
      */
     public function destroy(Vendor $vendor): JsonResponse
     {
-        // Check if vendor has invoices
-        if ($vendor->invoices()->exists()) {
+        $result = $this->vendorService->delete($vendor);
+
+        if (! $result['success']) {
             return response()->json([
-                'message' => 'Cannot delete vendor with existing invoices.',
+                'message' => $result['message'],
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $this->vendorRepository->delete($vendor);
-
         return response()->json([
-            'message' => 'Vendor deleted successfully.',
+            'message' => $result['message'],
         ]);
     }
 }
