@@ -33,4 +33,27 @@ class VendorRepository extends BaseRepository implements VendorRepositoryInterfa
     {
         return $this->model->where('code', $code)->first();
     }
+
+    /**
+     * Find vendor with invoice statistics loaded.
+     */
+    public function findWithStats(int $id): ?Vendor
+    {
+        return $this->model->newQuery()
+            ->where('id', $id)
+            ->withCount('invoices')
+            ->withSum('invoices', 'total_amount')
+            ->withCount(['invoices as pending_invoices_count' => function ($query) {
+                $query->where('status', 'pending');
+            }])
+            ->first();
+    }
+
+    /**
+     * Check if vendor has any invoices.
+     */
+    public function hasInvoices(Vendor $vendor): bool
+    {
+        return $vendor->invoices()->exists();
+    }
 }

@@ -18,4 +18,14 @@ interface VendorRepositoryInterface extends BaseRepositoryInterface
      * Find a vendor by code.
      */
     public function findByCode(string $code): ?Vendor;
+
+    /**
+     * Find vendor with invoice statistics loaded.
+     */
+    public function findWithStats(int $id): ?Vendor;
+
+    /**
+     * Check if vendor has any invoices.
+     */
+    public function hasInvoices(Vendor $vendor): bool;
 }
